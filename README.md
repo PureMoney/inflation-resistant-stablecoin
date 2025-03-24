@@ -5,7 +5,7 @@ A project by Rock Stable, purveyors of ROKS, a stablecoin currently used exclusi
 
 # Inflation-Resistant Medium of Account (IRMA)
 
-This a set of Solana contracts written in solang that implement an inflation-resistant stablecoin using OpenBook. Switching over to Rust to make it easy to integrate with Solana. This is now patent pending.
+This a set of Solana contracts written in solang (no, Rust) that implement an inflation-resistant stablecoin using OpenBook. Switching over to Rust to make it easy to integrate with Solana. This is now patent pending.
 
 # For dev contributors
 
