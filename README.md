@@ -1,6 +1,6 @@
 # Inflation-Resistant Medium of Account (IRMA)
 
-This a set of Solana contracts written in solang (no, Rust) that implement an inflation-resistant stablecoin using OpenBook. Switching over to Rust to make it easy to integrate with Solana. This is now patent pending.
+This a set of Solana contracts started in solang (now continuing in Rust for easy integration with Anchor) that implement an inflation-resistant stablecoin using OpenBook. Switching over to Rust to make it easy to integrate with Solana. This is now patent pending.
 
 # For dev contributors
 
