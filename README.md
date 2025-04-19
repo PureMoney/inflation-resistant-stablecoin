@@ -8,19 +8,9 @@ If you are new to Solana, it helps to read a good intro: [Link](https://www.heli
 
 Programming directly on Solana involves lots of complicated details. Using the Anchor library helps simplify things like figuring out the instructions that form a transaction. Here is a good documentation on Anchor: [Link](https://book.anchor-lang.com/)
 
-We come from the Microsoft side of the programming fence, but the tools necessary for building a Solana app are all native to Linux. In order to make things simpler and less risky we decided to use Linux for our workstation; however, we kept Windows as part of our environment, but only for its great UI and VS Code. The Windows Subsystem for Linux has been crucial in allowing us to use Linux CLI tools and yet use VS Code for editing and debugging. However, using Linux alone should work too.
-
-We decided against using Rust mainly for the same reason: we come from Microsoft. We want to use Anchor but not Rust, so at first we thought C or C++ would be good. Alas, C / C++ does not have a good externals file (dot h file) for Anchor. We finally decided to use solang; solang is simple (not much clutter) and the resulting contracts can link with Anchor. Besides, we've done a lot of EVM Solidity programming and solang looks and feels like Solidity (but for Solana).
-
-Here is a great intro on how to use solang in the Solana environment: [Link](https://solidityonsolana.one/CourseContent)
-
-Here is some documentation on using solang with some info on how to use Anchor: [Link](https://solang.readthedocs.io/en/v0.3.3/targets/solana.html)
-
-This site has nothing about solang, but it is useful for setting up a WSL environment:
-[Link](https://www.helius.dev/blog/an-introduction-to-anchor-a-beginners-guide-to-building-solana-programs)
-
 
 # How to install the tools in your Linux workstation
+(Ref: https://solana.com/docs/intro/installation)
 
 ## 1. Installing Solana, Cargo, and Anchor
 
@@ -63,36 +53,13 @@ anchor init hello-world
 
 this prepares files for Rust - not what we need - but good enough to start somewhere.
 
-## 2. Solang Installation
-
-https://solang.readthedocs.io/en/latest/index.html
-
-https://solang.readthedocs.io/en/latest/targets/solana.html
-
-Solang Solidity Compiler v0.3.3-38-g22d6217 documentation
-
-Follow Option 2 - Download the binary
-(click "Linux x86-64" which works in WSL Ubuntu)
-
-```shell
-mkdir ~/.local/share/solana/install/solang
-
-mkdir ~/.local/share/solana/install/solang/bin
-
-cp /mnt/c/Users/<user>/Downloads/solang-linux-x86-64 ~/.local/share/solana/install/solang/bin/solang
-
-# Copy from your Download folder to ~/.local/share/solana/install/solang/bin/solang
-export PATH=/home/<user>/.local/share/solana/install/active_release/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:~/.local/share/solana/install/solang/bin/solang
-solang --version
-```
-
-(Note: solang is also installed when solana sdk is installed.)
+## 2. Rustc Installation
+(Ref: https://solana.com/docs/intro/installation)
 
 ### To integrate with a pre-existing, external contract:
 
 ```shell
 anchor idl fetch --out openbook.idl <address of OpenBook program>
-solang idl --output filename.txt openbook.idl
 cargo add openbook.idl
 ```
 
@@ -116,8 +83,6 @@ Run "anchor deploy" in the first WSL instance
 
 Run "anchor keys list", this will give you the new program ids
 
-Copy the id(s) to the top of your solang contract(s) and also to Anchor.toml
-
 Delete the target folder again
 
 Run anchor build again to get the correct id(s) in target/types folder
@@ -133,12 +98,6 @@ Also, the Solana address to which the program is deployed must have some minimum
 
 ```
 failed, error:  SendTransactionError: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: incorrect program id for instruction
-    at Connection.sendEncodedTransaction (/home/ctapang/source/inflation-resistant-stablecoin/anchor-solang/node_modules/@solana/web3.js/lib/index.cjs.js:8026:13)
-    at processTicksAndRejections (node:internal/process/task_queues:96:5)
-    at async Connection.sendRawTransaction (/home/ctapang/source/inflation-resistant-stablecoin/anchor-solang/node_modules/@solana/web3.js/lib/index.cjs.js:7992:20)
-    at async sendAndConfirmRawTransaction (/home/ctapang/source/inflation-resistant-stablecoin/anchor-solang/node_modules/@coral-xyz/anchor/dist/cjs/provider.js:247:23)
-    at async AnchorProvider.sendAndConfirm (/home/ctapang/source/inflation-resistant-stablecoin/anchor-solang/node_modules/@coral-xyz/anchor/dist/cjs/provider.js:98:20)
-    at async MethodsBuilder.rpc [as _rpcFn] (/home/ctapang/source/inflation-resistant-stablecoin/anchor-solang/node_modules/@coral-xyz/anchor/dist/cjs/program/namespace/rpc.js:15:24) {
   logs: [
     'Program 4b6V88qC7MXuvFhnTf1wSTQVJj7eswky6WkETaNqTJtm invoke [1]',
     'Program log: program_id should be 2VN914zCR1WkHwXeP8vRdimBWMYuNGL9MqJbbQ28SmMy',
