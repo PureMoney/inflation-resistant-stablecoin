@@ -67,6 +67,12 @@ cargo add openbook.idl
 
 The tsc config file tsconfig.json must be used, and the only way I found to do this (that also transpiles the .ts files) is to simply do the CLI command "tsc".
 
+### Install Nodejs and yarn
+(Ref: https://solana.com/docs/intro/installation)
+
+### Install mocha (for running tests)
+(Ref: https://installati.one/install-mocha-ubuntu-20-04/)
+
 ## 3. Possible Issues
 
 If your contract increases in size as you develop it, "anchor deploy" can fail with "Error: Deploying program failed: RPC response error -32002: Transaction simulation failed: Error processing Instruction 0: account data too small for instruction [3 log messages]". Anchor deploy calculates the necessary data size, but if you modify the contract, memory size requirement of your contract can increase. This is the reason for this error. Another error that can come up during testing is "Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: incorrect program id for instruction".
