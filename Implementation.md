@@ -128,3 +128,7 @@ Step 2. Swap USDT for IRMA, either directly using the IRMA smart contract, or us
 
 Arbitrageurs are going to take advantage of the difference between the issuance price from the redemption price. During fiat inflation, the issuance price is mostly higher than the redemption price (in units of backing). An arbitrageur can sell IRMA at a slightly lower price than the issuance price, at the same time bid for the backing at a slightly higher price than the redemption price; thereby gaining more IRMA in the process. This is OK.
 
+## Initial set of stablecoin backings
+
+We want to back IRMA with three stablecoins initially, as a kind of test. All three stablecoins must exist in Solana. All of USDT, USDC, and PYUSD exist in Solana. However, PYUSD is not the third largest in terms of market cap. We still need to find out which of the stablecoins listed here exist in Solana: 
+https://www.bankrate.com/investing/worlds-largest-stablecoins/
