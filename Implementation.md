@@ -39,7 +39,7 @@ Component 3:
 Set redemption price equal to total USD backing divided by total amount of stablecoin in circulation.
 
 Component 4:
-When issuing a certain amount of stablecoin, keep tract of total amount of backing and amount of stablecoin in circulation.
+When issuing a certain amount of stablecoin, keep track of total amount of backing and amount of stablecoin in circulation.
 
 Component 5:
 When redeeming a certain amount of stablecoin, subtract from both backing and amount in circulation (tracking totals).
