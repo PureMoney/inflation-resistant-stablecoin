@@ -41,7 +41,7 @@ more stablecoin tokens get added to the IRMA backing. Unwanted, inflating stable
 
 The worst effect of third-party arbitrage would be
 the slowing down of the increase in redemption price, which may not be too bad because buyers of IRMA, who expect higher and higher USD inflation, won't mind that the current
-redemption price is low if the expectation is that redemption price will eventually reach the price at which they bought IRMA. Besides, the market price of IRMA should normally higher than
+redemption price is low if the expectation is that redemption price will eventually reach the price at which they bought IRMA. Besides, the market price of IRMA should normally be higher than
 redemption price anyway, because of arbitrage.
 
 We should do simulations to determine whether having our own arbitrage program is really necessary.
