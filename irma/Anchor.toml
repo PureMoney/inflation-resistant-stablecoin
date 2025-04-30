@@ -1,18 +1,18 @@
 [toolchain]
-anchor_version = "0.31.1"
+package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-anchor_rust = "HFd983MMdNSdTxur7MKiYrDkFaftNxQnYGra4ypYciSn"
+irma = "aSEXhjDC3inoAK5DviWkw3mPujzRYibQqCRDGN7hg9r"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
