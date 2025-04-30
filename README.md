@@ -12,6 +12,12 @@ Programming directly on Solana involves lots of complicated details. Using the A
 # How to install the tools in your Linux workstation
 (Ref: https://solana.com/docs/intro/installation)
 
+## 0. Run Ubuntu 24.04
+
+The problem with previous versions of Ubuntu is that the glibc version that comes with those are not compatible with anchor version 0.31.1. You can save time by starting with the Ubuntu 24.04 distribution. If you are running Ubuntu undel WSL in Windows, you can terminate any previous running version and simply issue the following wsl command:
+
+wsl --install Ubuntu-24.04
+
 ## 1. Installing Solana, Cargo, and Anchor
 
 ```shell
