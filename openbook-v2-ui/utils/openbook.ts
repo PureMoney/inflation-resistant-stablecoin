@@ -29,7 +29,8 @@ export const RPC = process.env.NEXT_PUBLIC_RPC;
 // export const RPC = "https://aimil-f4d13p-fast-devnet.helius-rpc.com/";
 
 const getPrivateKey = (val: string) => {
-  return Keypair.fromSecretKey(Buffer.from(JSON.parse(val)));
+  const uArray = Buffer.from(val);
+  return Keypair.fromSecretKey(Uint8Array.from(uArray));
 };
 
 export const wallet = getPrivateKey(process.env.NEXT_PUBLIC_WALLET_PK);
