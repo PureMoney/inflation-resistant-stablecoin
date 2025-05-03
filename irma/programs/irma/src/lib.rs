@@ -35,19 +35,10 @@ pub mod irma {
 
     pub fn redeem_irma(ctx: Context<RedeemIrma>, quote_token: String, irma_amount: u64) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        let backing_reserve = state.backing_reserves.get_mut(&quote_token).ok_or(CustomError::InvalidQuoteToken)?;
-        let circulation = state.irma_in_circulation.get_mut(&quote_token).ok_or(CustomError::InvalidQuoteToken)?;
 
         require!(irma_amount > 0, CustomError::InvalidAmount);
-        require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
 
-        let redemption_price = *backing_reserve / *circulation;
-        let redeemed_amount = irma_amount * redemption_price;
-
-        require!(*backing_reserve >= redeemed_amount, CustomError::InsufficientReserve);
-
-        *backing_reserve -= redeemed_amount;
-        *circulation -= irma_amount;
+        state.reduce_circulations(&quote_token, irma_amount)?;
 
         Ok(())
     }
@@ -79,6 +70,49 @@ pub struct State {
     pub mint_price: u64,
     pub backing_reserves: HashMap<String, u64>,
     pub irma_in_circulation: HashMap<String, u64>,
+}
+
+impl State {
+    fn reduce_circulations(&mut self, quote_token: &String, irma_amount: u64) -> Result<()> {
+        let mut price_differences: Vec<(&String, i64)> = self.backing_reserves.iter()
+            .filter_map(|(token, reserve)| {
+                let circulation = self.irma_in_circulation.get(token)?;
+                let redemption_price = *reserve as i64 / *circulation as i64;
+                let mint_price = self.mint_price as i64;
+                Some((token, mint_price - redemption_price))
+            })
+            .collect();
+
+        price_differences.sort_by(|a, b| b.1.cmp(&a.1));
+
+        let first_target = price_differences.first().ok_or(CustomError::InvalidQuoteToken)?.0;
+
+        if first_target == quote_token {
+            let circulation = self.irma_in_circulation.get_mut(first_target).ok_or(CustomError::InvalidQuoteToken)?;
+            require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
+            *circulation -= irma_amount;
+            return Ok(());
+        }
+
+        let first_circulation = self.irma_in_circulation.get_mut(first_target).ok_or(CustomError::InvalidQuoteToken)?;
+        let second_circulation = self.irma_in_circulation.get_mut(quote_token).ok_or(CustomError::InvalidQuoteToken)?;
+
+        let first_reserve = self.backing_reserves.get(first_target).ok_or(CustomError::InvalidQuoteToken)?;
+        let second_reserve = self.backing_reserves.get(quote_token).ok_or(CustomError::InvalidQuoteToken)?;
+
+        let mut first_price_diff = (*first_reserve as i64 / *first_circulation as i64) - self.mint_price as i64;
+        let mut second_price_diff = (*second_reserve as i64 / *second_circulation as i64) - self.mint_price as i64;
+
+        if irma_amount as i64 <= (first_price_diff - second_price_diff).abs() {
+            *first_circulation -= irma_amount;
+        } else {
+            let adjustment_amount = ((first_price_diff - second_price_diff).abs()) as u64;
+            *first_circulation -= adjustment_amount;
+            *second_circulation -= irma_amount - adjustment_amount;
+        }
+
+        Ok(())
+    }
 }
 
 #[error_code]
