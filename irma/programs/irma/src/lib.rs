@@ -13,9 +13,11 @@ pub mod irma {
         Ok(())
     }
 
-    pub fn set_mint_price(ctx: Context<SetMintPrice>, mint_price: u64) -> Result<()> {
+    pub fn set_mint_price(ctx: Context<SetMintPrice>, quote_token: String, mint_price: u64) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        state.mint_price = mint_price;
+        let curr_price = state.mint_price.entry(quote_token.clone()).or_insert(0);
+        require!(mint_price > 0, CustomError::InvalidAmount);
+        *curr_price = mint_price;
         Ok(())
     }
 
@@ -23,12 +25,14 @@ pub mod irma {
         let state = &mut ctx.accounts.state;
         let backing_reserve = state.backing_reserves.entry(quote_token.clone()).or_insert(0);
         let circulation = state.irma_in_circulation.entry(quote_token.clone()).or_insert(0);
-
+        let curr_price = state.mint_price.entry(quote_token.clone()).or_insert(0);
+        
+        require!(curr_price > 0, CustomError::MintPriceNotSet);
+        require!(backing_reserve > 0, CustomError::InsufficientReserve);
         require!(amount > 0, CustomError::InvalidAmount);
-        require!(state.mint_price > 0, CustomError::MintPriceNotSet);
 
         *backing_reserve += amount;
-        *circulation += amount / state.mint_price;
+        *circulation += amount / curr_price;
 
         Ok(())
     }
@@ -67,7 +71,7 @@ pub struct RedeemIrma<'info> {
 
 #[account]
 pub struct State {
-    pub mint_price: u64,
+    pub mint_price: HashMap<String, u64>,
     pub backing_reserves: HashMap<String, u64>,
     pub irma_in_circulation: HashMap<String, u64>,
 }
@@ -78,7 +82,10 @@ impl State {
             .filter_map(|(token, reserve)| {
                 let circulation = self.irma_in_circulation.get(token)?;
                 let redemption_price = *reserve as i64 / *circulation as i64;
-                let mint_price = self.mint_price as i64;
+                let mint_price = self.mint_price.get(token)?;
+                if mint_price == &0 {
+                    return None;
+                }
                 Some((token, mint_price - redemption_price))
             })
             .collect();
@@ -96,17 +103,28 @@ impl State {
 
         let first_circulation = self.irma_in_circulation.get_mut(first_target).ok_or(CustomError::InvalidQuoteToken)?;
         let second_circulation = self.irma_in_circulation.get_mut(quote_token).ok_or(CustomError::InvalidQuoteToken)?;
-
+        let first_price = self.mint_price.get(first_target).ok_or(CustomError::MintPriceNotSet)?;
+        let second_price = self.mint_price.get(quote_token).ok_or(CustomError::MintPriceNotSet)?;
         let first_reserve = self.backing_reserves.get(first_target).ok_or(CustomError::InvalidQuoteToken)?;
         let second_reserve = self.backing_reserves.get(quote_token).ok_or(CustomError::InvalidQuoteToken)?;
 
-        let mut first_price_diff = (*first_reserve as i64 / *first_circulation as i64) - self.mint_price as i64;
-        let mut second_price_diff = (*second_reserve as i64 / *second_circulation as i64) - self.mint_price as i64;
+        let mut first_price_diff = *first_price as i64 - (*first_reserve as i64 / *first_circulation as i64);
+        let mut second_price_diff = *second_price as i64 - (*second_reserve as i64 / *second_circulation as i64);
 
-        if irma_amount as i64 <= (first_price_diff - second_price_diff).abs() {
+        let post_first_price_diff = *first_price as i64 - (*first_reserve as i64 / (*first_circulation as i64 - irma_amount as i64));
+
+        if post_first_price_diff < second_price_diff {
             *first_circulation -= irma_amount;
         } else {
-            let adjustment_amount = ((first_price_diff - second_price_diff).abs()) as u64;
+            let R = *first_reserve as i64 + *second_reserve as i64;
+            let P = *second_price as i64 - *first_price as i64;
+            let U = *first_circulation as i64 - *second_reserve as i64 + irma_amount as i64;
+            let V = *second_circulation as i64 - irma_amount as i64;
+            let fc = *first_circulation as i64;
+            let sr = *second_reserve as i64;
+            let fr = *first_reserve as i64;
+
+            let first_adjustment_amount = ((R / P) + U)/2 + Math::sqrt(((R / P) + U).pow(2) + 2 * (fc * V - (fc * sr - fr * V)/P));
             *first_circulation -= adjustment_amount;
             *second_circulation -= irma_amount - adjustment_amount;
         }
