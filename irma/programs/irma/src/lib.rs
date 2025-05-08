@@ -49,7 +49,7 @@ declare_id!("aSEXhjDC3inoAK5DviWkw3mPujzRYibQqCRDGN7hg9r");
 pub mod irma {
     use super::*;
 
-    // All currently existing stablecoins with over $100M in circulation
+    // All currently existing stablecoins with over $1B in circulation
     // are supported. This list is not exhaustive and will be updated as new
     // stablecoins are added to the market.
     // Initially, we will support only those stablecoins that exist
@@ -61,6 +61,7 @@ pub mod irma {
         USDS, // from Sky (previously MakerDAO) #19
         USDE, // from Ethena #31
         PYUSD, // from PayPal #98
+        USDG, // from Singapore #263
         USDP, // from Paxos #551
         SUSD, // from Solayer, has 4 to 5% yield #839
         ZUSD, // from GMO-Z #1165
@@ -79,13 +80,14 @@ pub mod irma {
                 2 => Some(USDS),
                 3 => Some(USDE),
                 4 => Some(PYUSD),
-                5 => Some(USDP),
-                6 => Some(SUSD),
-                7 => Some(ZUSD),
-                8 => Some(USDR),
-                9 => Some(DAI),
-                10 => Some(FDUSD),
-                11 => Some(USD1),
+                5 => Some(USDG),
+                6 => Some(USDP),
+                7 => Some(SUSD),
+                8 => Some(ZUSD),
+                9 => Some(USDR),
+                10 => Some(DAI),
+                11 => Some(FDUSD),
+                12 => Some(USD1),
                 _ => None,
             }
         }
@@ -97,13 +99,14 @@ pub mod irma {
                 USDS => 2,
                 USDE => 3,
                 PYUSD => 4,
-                USDP => 5,
-                SUSD => 6,
-                ZUSD => 7,
-                USDR => 8,
-                DAI => 9,
-                FDUSD => 10,
-                USD1 => 11,
+                USDG => 5,
+                USDP => 6,
+                SUSD => 7,
+                ZUSD => 8,
+                USDR => 9,
+                DAI => 10,
+                FDUSD => 11,
+                USD1 => 12,
                 INVALID => INVALID as usize,
             }
         }
@@ -115,6 +118,7 @@ pub mod irma {
                 USDS => "USDS".to_string(),
                 USDE => "USDE".to_string(),
                 PYUSD => "PYUSD".to_string(),
+                USDG => "USDG".to_string(),
                 USDP => "USDP".to_string(),
                 SUSD => "SUSD".to_string(),
                 ZUSD => "ZUSD".to_string(),
@@ -133,6 +137,7 @@ pub mod irma {
                 "USDS" => USDS,
                 "USDE" => USDE,
                 "PYUSD" => PYUSD,
+                "USDG" => USDG,
                 "USDP" => USDP,
                 "SUSD" => SUSD,
                 "ZUSD" => ZUSD,
