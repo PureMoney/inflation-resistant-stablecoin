@@ -183,7 +183,6 @@ pub mod irma {
 
     pub fn mint_irma(ctx: Context<MintIrma>, quote_token: Stablecoins, amount: u64) -> Result<()> {
         require!(amount > 0, CustomError::InvalidAmount);
-        require!(state.mint_price > 0, CustomError::MintPriceNotSet);
 
         let state = &mut ctx.accounts.state;
         let backing_reserve = state.backing_reserves.get_mut(quote_token as usize).unwrap();
