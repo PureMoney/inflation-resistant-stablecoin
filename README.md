@@ -2,6 +2,8 @@
 
 This a set of Solana contracts started in solang (now continuing in Rust for easy integration with Anchor) that implement an inflation-resistant stablecoin using OpenBook. Switching over to Rust to make it easy to integrate with Solana. This is now patent pending.
 
+IRMA Token: irmaN9bozBo9nnTqu1RBuoK7imbvBiFJTtdm6c7tC9f
+
 # For dev contributors
 
 If you are new to Solana, it helps to read a good intro: [Link](https://www.helius.dev/blog/the-solana-programming-model-an-introduction-to-developing-on-solana)
