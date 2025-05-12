@@ -299,6 +299,8 @@ export class OpenBookV2Client {
       })
       .instruction();
 
+      console.log("--> createMarket ix size: ", ix.data.length + 32);
+
     return [
       [bidIx, askIx, eventHeapIx, ix],
       [market, bidsKeypair, askKeypair, eventHeapKeypair],
@@ -432,6 +434,11 @@ export class OpenBookV2Client {
 
     if (openOrdersIndexer == null)
       openOrdersIndexer = this.findOpenOrdersIndexer(owner);
+
+    if (openOrdersIndexer === null) {
+      console.error("No open order indexer for the specified owner");
+      return [null, null];
+    }
 
     try {
       const storedIndexer = await this.deserializeOpenOrdersIndexerAccount(

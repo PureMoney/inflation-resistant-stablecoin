@@ -28,52 +28,75 @@ export const RPC = process.env.NEXT_PUBLIC_RPC;
 // DEVNET
 // export const RPC = "https://aimil-f4d13p-fast-devnet.helius-rpc.com/";
 
+// export const connection = new Connection("https://aimil-f4d13p-fast-devnet.helius-rpc.com/");
+
+const connection = new Connection(RPC);
+
 const getPrivateKey = (val: string) => {
-  const uArray = Buffer.from(val);
-  return Keypair.fromSecretKey(Uint8Array.from(uArray));
+  const uArray = Uint8Array.from(
+    val
+      .split(",")
+      .map((x) => parseInt(x))
+      .filter((x) => !isNaN(x) && x >= 0 && x <= 255)
+  );
+  if (uArray.length !== 64) {
+    throw new Error("Invalid private key length: " + uArray.length);
+  }
+  return Keypair.fromSecretKey(uArray);
 };
 
-export const wallet = getPrivateKey(process.env.NEXT_PUBLIC_WALLET_PK);
+const walletPk = process.env.NEXT_PUBLIC_WALLET_PK;
+export const wallet = (walletPk && walletPk.length > 0) ? getPrivateKey(walletPk) : null;
 
-export const openOrdersAdminE = getPrivateKey(
-  process.env.NEXT_PUBLIC_OPEN_ORDER_ADMIN_E_PK
-);
+if (wallet) console.log("wallet address: ", wallet.publicKey.toBase58());
 
-export const closeMarketAdminE = getPrivateKey(
-  process.env.NEXT_PUBLIC_CLOSE_MARKET_ADMIN_E_PK
-);
+const openOrderAdminPk = process.env.NEXT_PUBLIC_OPEN_ORDER_ADMIN_E_PK;
+// console.log("openOrderAdminPk: ", openOrderAdminPk);
 
-export const consumeEventsAdminE = getPrivateKey(
-  process.env.NEXT_PUBLIC_CONSUME_EVENTS_ADMIN_E_PK
-);
+export const openOrdersAdminE = (openOrderAdminPk && openOrderAdminPk.length > 0) ?
+ getPrivateKey(openOrderAdminPk) : null;
 
-export const walletTokenAcct4ROKS = new PublicKey(
-  "5VNRZzJfk6Cfzxd1giXPitvf5yrdixLTwgKPdKTgLerJ"
-); // ROKS container in principal's wallet
+if (openOrdersAdminE) console.log("openOrdersAdminE address: ", openOrdersAdminE.publicKey.toBase58());
 
-export const walletTokenAcct4USDC = new PublicKey(
-  "5KGAUASRHPwthAWKooyWMaShoXAy6ogGJn2GP6ChTroX"
-);
+const closeMarketAdminPk = process.env.NEXT_PUBLIC_CLOSE_MARKET_ADMIN_E_PK;
+// console.log("closeMarketAdminPk: ", closeMarketAdminPk);
+
+export const closeMarketAdminE = (closeMarketAdminPk && closeMarketAdminPk.length > 0) ?
+  getPrivateKey(closeMarketAdminPk) : null;
+
+if (closeMarketAdminE) console.log("closeMarketAdminE address: ", closeMarketAdminE.publicKey.toBase58());
+
+const consumeEventsAdminPk = process.env.NEXT_PUBLIC_CONSUME_EVENTS_ADMIN_E_PK;
+// console.log("consumeEventsAdminPk: ", consumeEventsAdminPk);
+
+export const consumeEventsAdminE = (consumeEventsAdminPk && consumeEventsAdminPk.length > 0) ?
+  getPrivateKey(consumeEventsAdminPk) : null;
+
+if (consumeEventsAdminE) console.log("consumeEventsAdminE address: ", consumeEventsAdminE.publicKey.toBase58());
 
 export const tokenUSDC = new PublicKey(
   "E6oEFEuYUYEt8U5mmKQvzvRUhRmgHCsVpmcyyrPEbCNy"
 ); // fake usdc
 
-export const tokenROKS = new PublicKey(
-  "roksyHbKUYGp2Him7ubyruUXSKXXMy7hZP7u81vxCN8"
+export const tokenIRMA = new PublicKey(
+  "irmacFBRx7148dQ6qq1zpzUPq57Jr8V4vi5eXDxsDe1"
+);
+
+export const walletTokenAcct4IRMA = new PublicKey(
+  "FdbTkQi4KMAyLT48FJxqYXM9UjXrtAbhQ63updyn5Zcp" // "5VNRZzJfk6Cfzxd1giXPitvf5yrdixLTwgKPdKTgLerJ"
+); // IRMA container in principal's wallet
+
+export const walletTokenAcct4USDC = new PublicKey(
+  "Fr4Nt7yNe9dh6cnx6ZVNivjNbawZoyNQm5mXTMNNXr9R"
 );
 
 // export const chainlink = new PublicKey("HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny"); // chainlink
 
-const nonceAcct = new PublicKey("GjbJUK45q4AHRa3GHtwgQbcYpGScBPCGkfXLMmZes3rk");
+const nonceAcct = new PublicKey("HEbFxdDuoXwSPEND6bQ8tRzdLhjTmn7GeDWtqVnqFw9f"); // "GjbJUK45q4AHRa3GHtwgQbcYpGScBPCGkfXLMmZes3rk");
 
 const lookupTableAddress = new PublicKey(
-  "3hA6zazrv9cWJ8hMm4oHVgJcPvdSpmAtzZ2bfsRe1LrN"
+  "2NLsHEjVJdUWrZzungZd3KekTyf1mtYvrfR86cQRszGP" // "3hA6zazrv9cWJ8hMm4oHVgJcPvdSpmAtzZ2bfsRe1LrN"
 );
-
-// export const connection = new Connection("https://aimil-f4d13p-fast-devnet.helius-rpc.com/");
-
-const connection = new Connection(RPC);
 
 let lookupTableAccount: AddressLookupTableAccount;
 connection.getAddressLookupTable(lookupTableAddress).then((account) => {
@@ -99,6 +122,7 @@ export const sendVersionedTx = async (
   additionalSigners: Signer[] = []
 ) => {
   const blockhash = (await connection.getLatestBlockhash()).blockhash;
+  
   // construct a v0 compatible transaction `Message`
   if (!lookupTableAccount) {
     console.error("lookuptable null");
@@ -111,8 +135,13 @@ export const sendVersionedTx = async (
     instructions,
   }).compileToV0Message([lookupTableAccount]);
 
+  console.log("--> lookupTableAccount: ", lookupTableAccount.key.toBase58());
+
   // create a v0 transaction from the v0 message
   const transactionV0 = new VersionedTransaction(messageV0);
+
+  console.log("+++++ transactionV0 done, now sending"); // , transactionV0);
+
   transactionV0.sign([wallet, ...additionalSigners]);
 
   return await connection.sendTransaction(transactionV0, {

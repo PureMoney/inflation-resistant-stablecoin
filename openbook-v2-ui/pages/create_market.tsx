@@ -11,7 +11,7 @@ import {
   openOrdersAdminE, 
   closeMarketAdminE,
   consumeEventsAdminE,
-  tokenROKS, 
+  tokenIRMA, 
   tokenUSDC, 
   ixAdvanceNonce, 
   sendVersionedTx 
@@ -20,16 +20,16 @@ import {
 const CreateMarket = () => {
   const { publicKey } = wallet;
 
-  const [name, setName] = useState("ROKS-USDC");
+  const [name, setName] = useState("IRMA-USDC");
   const [quoteMint, setQuoteMint] = useState(tokenUSDC); // fake usdc
-  const [baseMint, setBaseMint] = useState(tokenROKS);
-  const [quoteLotSize, setQuoteLotSize] = useState("1457000");
-  const [baseLotSize, setBaseLotSize] = useState("1000000000");
-  const [makerFee, setMakerFee] = useState("-999");
-  const [takerFee, setTakerFee] = useState("999");
+  const [baseMint, setBaseMint] = useState(tokenIRMA);
+  const [quoteLotSize, setQuoteLotSize] = useState("100000000");
+  const [baseLotSize, setBaseLotSize] = useState("1000000");
+  const [makerFee, setMakerFee] = useState("5000");
+  const [takerFee, setTakerFee] = useState("100");
   const [timeExpiry, setTimeExpiry] = useState("0");
-  const [oracleA, setOracleA] = useState(null);
-  const [oracleB, setOracleB] = useState(null);
+  const [oracleA, setOracleA] = useState(null); // new PublicKey("2EmfL3MqL3YHABudGNmajjCpR13NNEn9Y4LWxbDm6SwR"));
+  const [oracleB, setOracleB] = useState(null); // new PublicKey("pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT"));
   const [openOrdersAdmin, setOpenOrdersAdmin] = useState(openOrdersAdminE.publicKey);
   const [consumeEventsAdmin, setConsumeEventsAdmin] = useState(consumeEventsAdminE.publicKey);
   const [closeMarketAdmin, setCloseMarketAdmin] = useState(closeMarketAdminE.publicKey);
@@ -68,10 +68,20 @@ const CreateMarket = () => {
           oracleConfigParams
         )
         .then(async ([transactionInstructions, signers]) => {
-          console.log("--> create market instructions done");
+          console.log("--> create market instructions done", transactionInstructions.length);
+          transactionInstructions.forEach((tx) => {
+            console.log("signer keys len - ", tx.keys.length);
+            console.log("program id len - ", 32);
+            console.log("data len - ", tx.data.length);
+          });
           // Advance nonce instruction, with prioritizationFee
           const nonceInstructions = await ixAdvanceNonce(300000);
-          console.log("--> advance nonce instructions done, now sending ...");
+          console.log("--> advance nonce instructions done");
+          nonceInstructions.forEach((tx) => {
+            console.log("signer keys len - ", tx.keys.length);
+            console.log("program id len - ", 32);
+            console.log("data len - ", tx.data.length);
+          });
 
           const tx = await sendVersionedTx([...nonceInstructions, ...transactionInstructions], signers);
 
