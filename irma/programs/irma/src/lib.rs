@@ -1,5 +1,5 @@
 #![allow(unexpected_cfgs)]
-#![feature(trivial_bounds)]
+// #![feature(trivial_bounds)]
 // #[cfg(feature = "idl-build")]
 
 // use anchor_lang::prelude::*;
