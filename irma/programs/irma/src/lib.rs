@@ -43,7 +43,7 @@ use anchor_lang::prelude::borsh;
 
 use crate::Stablecoins::*;
 
-declare_id!("aSEXhjDC3inoAK5DviWkw3mPujzRYibQqCRDGN7hg9r");
+declare_id!("9YqUAh5ddMzozqLcUf3Af8k4YkduLZMHQr4iagXcJ1PX");
 
 #[program]
 pub mod irma {
@@ -170,6 +170,11 @@ pub mod irma {
         state.backing_reserves.push(0);
         state.backing_reserves.push(0);
         state.backing_reserves.push(0);
+        Ok(())
+    }
+
+    pub fn hello(ctx: Context<SetMintPrice>) -> Result<()> {
+        msg!("Hello world...");
         Ok(())
     }
 
