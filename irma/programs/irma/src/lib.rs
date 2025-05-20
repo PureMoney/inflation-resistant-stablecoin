@@ -2,52 +2,13 @@
 // #![feature(trivial_bounds)]
 // #[cfg(feature = "idl-build")]
 
-// use anchor_lang::prelude::*;
-use anchor_lang::prelude::Account;
-use anchor_lang::prelude::AccountInfo;
-use anchor_lang::prelude::Context;
-use anchor_lang::prelude::msg;
-use anchor_lang::prelude::Program;
-use anchor_lang::prelude::Pubkey;
-use anchor_lang::prelude::Rent;
-use anchor_lang::prelude::Signer;
-use anchor_lang::prelude::SolanaSysvar;
-use anchor_lang::prelude::System;
 use anchor_lang::prelude::*;
-// // use anchor_lang::solana_program::borsh;
-use anchor_lang::program;
-use anchor_lang::require_gte;
-use anchor_lang::require_eq;
-use anchor_lang::require;
-use anchor_lang::account;
-use anchor_lang::Accounts;
-use anchor_lang::error;
-use anchor_lang::error_code;
-use anchor_lang::declare_id;
-use anchor_lang::AccountDeserialize;
-use anchor_lang::AccountSerialize;
-use anchor_lang::AnchorSerialize;
-use anchor_lang::AnchorDeserialize;
-use anchor_lang::AccountsExit;
-use anchor_lang::Discriminator;
-// use anchor_lang::IdlBuild;
-use anchor_lang::Key;
-use anchor_lang::ToAccountInfo;
-
-// // use anchor_lang::prelude::*;
-// // use crate::borsh::maybestd::collections::HashMap;
-use anchor_lang::prelude::borsh;
-// // use borsh::maybestd::collections::BTreeMap;
-// use std::collections::Vec;
-// use crate::error::Error;
+use anchor_lang::*;
 
 use crate::Stablecoins::*;
+const BACKING_COUNT: usize = EnumCount as usize;
 
-declare_id!("aSEXhjDC3inoAK5DviWkw3mPujzRYibQqCRDGN7hg9r");
-
-#[program]
-pub mod irma {
-    use super::*;
+declare_id!("CutKRa6VEmfGQcNv97cL2R1oqNBFpg9voAJbsBXEkF7a");
 
     // All currently existing stablecoins with over $1B in circulation
     // are supported. This list is not exhaustive and will be updated as new
@@ -69,7 +30,7 @@ pub mod irma {
         DAI,
         FDUSD,
         USD1,
-        INVALID
+        EnumCount
     }
 
     impl Stablecoins {
@@ -107,7 +68,7 @@ pub mod irma {
                 DAI => 10,
                 FDUSD => 11,
                 USD1 => 12,
-                INVALID => INVALID as usize,
+                EnumCount => EnumCount as usize,
             }
         }
 
@@ -126,7 +87,7 @@ pub mod irma {
                 DAI => "DAI".to_string(),
                 FDUSD => "FDUSD".to_string(),
                 USD1 => "USD1".to_string(),
-                INVALID => "INVALID".to_string(),
+                EnumCount => "EnumCount".to_string(),
             }
         }
 
@@ -145,10 +106,15 @@ pub mod irma {
                 "DAI" => DAI,
                 "FDUSD" => FDUSD,
                 "USD1" => USD1,
-                _ => INVALID,
+                _ => EnumCount,
             }
         }
     }
+
+
+#[program]
+pub mod irma {
+    use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
@@ -156,10 +122,10 @@ pub mod irma {
         if state.mint_price.len() > 0 {
             return Ok(());
         }
-        state.mint_price = Vec::<f64>::with_capacity(INVALID as usize);
+        state.mint_price = Vec::<f64>::with_capacity(EnumCount as usize);
         msg!("Vec capacity: {:?}", state.mint_price.capacity());
-        state.backing_reserves = Vec::<u64>::with_capacity(INVALID as usize);
-        state.irma_in_circulation = Vec::<u64>::with_capacity(INVALID as usize);
+        state.backing_reserves = Vec::<u64>::with_capacity(EnumCount as usize);
+        state.irma_in_circulation = Vec::<u64>::with_capacity(EnumCount as usize);
         state.mint_price.push(1.0);
         state.mint_price.push(1.0);
         state.mint_price.push(1.0);
@@ -170,6 +136,13 @@ pub mod irma {
         state.backing_reserves.push(0);
         state.backing_reserves.push(0);
         state.backing_reserves.push(0);
+        Ok(())
+    }
+
+    pub fn hello(ctx: Context<SetMintPrice>) -> Result<()> {
+        let state = &mut ctx.accounts.state;
+        msg!("Hello world...");
+        msg!("Irma in circulation for USDT {}", state.irma_in_circulation[USDT as usize]);
         Ok(())
     }
 
@@ -215,33 +188,54 @@ pub mod irma {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(mut)]
+    #[account(init, space=8*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
+    #[account(mut)]
+    pub irma_admin: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct SetMintPrice<'info> {
-    #[account(mut)]
+    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
+    #[account(mut)]
+    pub trader: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct MintIrma<'info> {
-    #[account(mut)]
+    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
+    #[account(mut)]
+    pub trader: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct RedeemIrma<'info> {
-    #[account(mut)]
+    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
+    #[account(mut)]
+    pub trader: Signer<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: Program<'info, System>,
 }
 
 #[account]
+#[derive(InitSpace)]
 pub struct State {
+    #[max_len(BACKING_COUNT)]
     pub mint_price: Vec<f64>,
+    #[max_len(BACKING_COUNT)]
     pub backing_reserves: Vec<u64>,
+    #[max_len(BACKING_COUNT)]
     pub irma_in_circulation: Vec<u64>,
+    pub bump: u8,
 }
 
 impl State {
@@ -261,7 +255,7 @@ impl State {
             .collect();
 
         let mut max_price_diff = 0.0;
-        let mut first_target = INVALID;
+        let mut first_target = EnumCount;
         for (i, price) in price_differences.iter().enumerate() {
             msg!("{}: {}", i, *price);
             if *price > max_price_diff {
@@ -272,7 +266,7 @@ impl State {
         // msg!("Max token: {}", first_target.to_string());
         msg!("Max price diff: {}", max_price_diff);
 
-        if (first_target == quote_token) || ((max_price_diff <= 0.0) && (first_target == INVALID)) {
+        if (first_target == quote_token) || ((max_price_diff <= 0.0) && (first_target == EnumCount)) {
             let circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
             require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
             *circulation -= irma_amount;
