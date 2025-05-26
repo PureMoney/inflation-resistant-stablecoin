@@ -10,6 +10,10 @@ const BACKING_COUNT: usize = EnumCount as usize;
 
 declare_id!("CutKRa6VEmfGQcNv97cL2R1oqNBFpg9voAJbsBXEkF7a");
 
+#[program]
+pub mod irma {
+    use super::*;
+
     // All currently existing stablecoins with over $1B in circulation
     // are supported. This list is not exhaustive and will be updated as new
     // stablecoins are added to the market.
@@ -112,10 +116,6 @@ declare_id!("CutKRa6VEmfGQcNv97cL2R1oqNBFpg9voAJbsBXEkF7a");
     }
 
 
-#[program]
-pub mod irma {
-    use super::*;
-
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
         let state = &mut ctx.accounts.state;
@@ -141,8 +141,16 @@ pub mod irma {
 
     pub fn hello(ctx: Context<SetMintPrice>) -> Result<()> {
         let state = &mut ctx.accounts.state;
+        if state.mint_price.len() == 0 {
+            state.mint_price = vec![1.0; BACKING_COUNT];
+            state.backing_reserves = vec![0; BACKING_COUNT];
+            state.irma_in_circulation = vec![0; BACKING_COUNT];
+        }
+        msg!("State initialized with mint prices: {:?}", state.mint_price);
+        msg!("Backing reserves: {:?}", state.backing_reserves);
+        msg!("Irma in circulation: {:?}", state.irma_in_circulation);
+        msg!("Program ID: {:?}", ctx.program_id);
         msg!("Hello world...");
-        msg!("Irma in circulation for USDT {}", state.irma_in_circulation[USDT as usize]);
         Ok(())
     }
 
@@ -198,7 +206,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct SetMintPrice<'info> {
-    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
+    #[account(mut, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
     #[account(mut)]
     pub trader: Signer<'info>,
@@ -208,7 +216,7 @@ pub struct SetMintPrice<'info> {
 
 #[derive(Accounts)]
 pub struct MintIrma<'info> {
-    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
+    #[account(mut, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
     #[account(mut)]
     pub trader: Signer<'info>,
@@ -218,7 +226,7 @@ pub struct MintIrma<'info> {
 
 #[derive(Accounts)]
 pub struct RedeemIrma<'info> {
-    #[account(init, space=8*BACKING_COUNT, payer=trader, seeds=[b"state".as_ref()], bump)]
+    #[account(mut, seeds=[b"state".as_ref()], bump)]
     pub state: Account<'info, State>,
     #[account(mut)]
     pub trader: Signer<'info>,
@@ -228,6 +236,7 @@ pub struct RedeemIrma<'info> {
 
 #[account]
 #[derive(InitSpace)]
+#[derive(Debug)]
 pub struct State {
     #[max_len(BACKING_COUNT)]
     pub mint_price: Vec<f64>,
