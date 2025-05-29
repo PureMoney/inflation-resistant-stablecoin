@@ -6,12 +6,12 @@ use anchor_lang::prelude::*;
 use anchor_lang::*;
 
 use crate::Stablecoins::*;
-const BACKING_COUNT: usize = EnumCount as usize;
+const BACKING_COUNT: usize = Stablecoins::EnumCount as usize;
 
-declare_id!("CutKRa6VEmfGQcNv97cL2R1oqNBFpg9voAJbsBXEkF7a");
+declare_id!("8zs1JbqxqLcCXzBrkMCXyY2wgSW8uk8nxYuMFEfUMQa6");
 
 #[program]
-pub mod irma {
+pub mod irmamod {
     use super::*;
 
     // All currently existing stablecoins with over $1B in circulation
@@ -40,77 +40,77 @@ pub mod irma {
     impl Stablecoins {
         pub fn from_index(index: usize) -> Option<Self> {
             match index {
-                0 => Some(USDT),
-                1 => Some(USDC),
-                2 => Some(USDS),
-                3 => Some(USDE),
-                4 => Some(PYUSD),
-                5 => Some(USDG),
-                6 => Some(USDP),
-                7 => Some(SUSD),
-                8 => Some(ZUSD),
-                9 => Some(USDR),
-                10 => Some(DAI),
-                11 => Some(FDUSD),
-                12 => Some(USD1),
+                0 => Some(Stablecoins::USDT),
+                1 => Some(Stablecoins::USDC),
+                2 => Some(Stablecoins::USDS),
+                3 => Some(Stablecoins::USDE),
+                4 => Some(Stablecoins::PYUSD),
+                5 => Some(Stablecoins::USDG),
+                6 => Some(Stablecoins::USDP),
+                7 => Some(Stablecoins::SUSD),
+                8 => Some(Stablecoins::ZUSD),
+                9 => Some(Stablecoins::USDR),
+                10 => Some(Stablecoins::DAI),
+                11 => Some(Stablecoins::FDUSD),
+                12 => Some(Stablecoins::USD1),
                 _ => None,
             }
         }
 
         pub fn to_index(&self) -> usize {
             match self {
-                USDT => 0,
-                USDC => 1,
-                USDS => 2,
-                USDE => 3,
-                PYUSD => 4,
-                USDG => 5,
-                USDP => 6,
-                SUSD => 7,
-                ZUSD => 8,
-                USDR => 9,
-                DAI => 10,
-                FDUSD => 11,
-                USD1 => 12,
-                EnumCount => EnumCount as usize,
+                Stablecoins::USDT => 0,
+                Stablecoins::USDC => 1,
+                Stablecoins::USDS => 2,
+                Stablecoins::USDE => 3,
+                Stablecoins::PYUSD => 4,
+                Stablecoins::USDG => 5,
+                Stablecoins::USDP => 6,
+                Stablecoins::SUSD => 7,
+                Stablecoins::ZUSD => 8,
+                Stablecoins::USDR => 9,
+                Stablecoins::DAI => 10,
+                Stablecoins::FDUSD => 11,
+                Stablecoins::USD1 => 12,
+                Stablecoins::EnumCount => Stablecoins::EnumCount as usize,
             }
         }
 
         pub fn to_string(&self) -> String {
             match self {
-                USDT => "USDT".to_string(),
-                USDC => "USDC".to_string(),
-                USDS => "USDS".to_string(),
-                USDE => "USDE".to_string(),
-                PYUSD => "PYUSD".to_string(),
-                USDG => "USDG".to_string(),
-                USDP => "USDP".to_string(),
-                SUSD => "SUSD".to_string(),
-                ZUSD => "ZUSD".to_string(),
-                USDR => "USDR".to_string(),
-                DAI => "DAI".to_string(),
-                FDUSD => "FDUSD".to_string(),
-                USD1 => "USD1".to_string(),
-                EnumCount => "EnumCount".to_string(),
+                Stablecoins::USDT => "USDT".to_string(),
+                Stablecoins::USDC => "USDC".to_string(),
+                Stablecoins::USDS => "USDS".to_string(),
+                Stablecoins::USDE => "USDE".to_string(),
+                Stablecoins::PYUSD => "PYUSD".to_string(),
+                Stablecoins::USDG => "USDG".to_string(),
+                Stablecoins::USDP => "USDP".to_string(),
+                Stablecoins::SUSD => "SUSD".to_string(),
+                Stablecoins::ZUSD => "ZUSD".to_string(),
+                Stablecoins::USDR => "USDR".to_string(),
+                Stablecoins::DAI => "DAI".to_string(),
+                Stablecoins::FDUSD => "FDUSD".to_string(),
+                Stablecoins::USD1 => "USD1".to_string(),
+                Stablecoins::EnumCount => "EnumCount".to_string(),
             }
         }
 
         pub fn from_string(s: &str) -> Self {
             match s {
-                "USDT" => USDT,
-                "USDC" => USDC,
-                "USDS" => USDS,
-                "USDE" => USDE,
-                "PYUSD" => PYUSD,
-                "USDG" => USDG,
-                "USDP" => USDP,
-                "SUSD" => SUSD,
-                "ZUSD" => ZUSD,
-                "USDR" => USDR,
-                "DAI" => DAI,
-                "FDUSD" => FDUSD,
-                "USD1" => USD1,
-                _ => EnumCount,
+                "USDT" => Stablecoins::USDT,
+                "USDC" => Stablecoins::USDC,
+                "USDS" => Stablecoins::USDS,
+                "USDE" => Stablecoins::USDE,
+                "PYUSD" => Stablecoins::PYUSD,
+                "USDG" => Stablecoins::USDG,
+                "USDP" => Stablecoins::USDP,
+                "SUSD" => Stablecoins::SUSD,
+                "ZUSD" => Stablecoins::ZUSD,
+                "USDR" => Stablecoins::USDR,
+                "DAI" => Stablecoins::DAI,
+                "FDUSD" => Stablecoins::FDUSD,
+                "USD1" => Stablecoins::USD1,
+                _ => Stablecoins::EnumCount,
             }
         }
     }
@@ -192,171 +192,172 @@ pub mod irma {
 
         Ok(())
     }
-}
 
-#[derive(Accounts)]
-pub struct Initialize<'info> {
-    #[account(init, space=8*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
-    pub state: Account<'info, State>,
-    #[account(mut)]
-    pub irma_admin: Signer<'info>,
-    #[account(address = system_program::ID)]
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct SetMintPrice<'info> {
-    #[account(mut, seeds=[b"state".as_ref()], bump)]
-    pub state: Account<'info, State>,
-    #[account(mut)]
-    pub trader: Signer<'info>,
-    #[account(address = system_program::ID)]
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct MintIrma<'info> {
-    #[account(mut, seeds=[b"state".as_ref()], bump)]
-    pub state: Account<'info, State>,
-    #[account(mut)]
-    pub trader: Signer<'info>,
-    #[account(address = system_program::ID)]
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct RedeemIrma<'info> {
-    #[account(mut, seeds=[b"state".as_ref()], bump)]
-    pub state: Account<'info, State>,
-    #[account(mut)]
-    pub trader: Signer<'info>,
-    #[account(address = system_program::ID)]
-    pub system_program: Program<'info, System>,
-}
-
-#[account]
-#[derive(InitSpace)]
-#[derive(Debug)]
-pub struct State {
-    #[max_len(BACKING_COUNT)]
-    pub mint_price: Vec<f64>,
-    #[max_len(BACKING_COUNT)]
-    pub backing_reserves: Vec<u64>,
-    #[max_len(BACKING_COUNT)]
-    pub irma_in_circulation: Vec<u64>,
-    pub bump: u8,
-}
-
-impl State {
-
-    fn reduce_circulations(&mut self, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
-        let price_differences : Vec<f64> = self.backing_reserves.iter()
-            .enumerate()
-            .filter_map(|(i, reserve)| {
-                let circulation = self.irma_in_circulation[i];
-                let redemption_price = *reserve as f64 / circulation as f64;
-                let mint_price = self.mint_price[i];
-                if mint_price == 0.0 {
-                    return None;
-                }
-                Some(mint_price - redemption_price)
-            })
-            .collect();
-
-        let mut max_price_diff = 0.0;
-        let mut first_target = EnumCount;
-        for (i, price) in price_differences.iter().enumerate() {
-            msg!("{}: {}", i, *price);
-            if *price > max_price_diff {
-                max_price_diff = *price;
-                first_target = Stablecoins::from_index(i).unwrap();
-            }
-        }
-        // msg!("Max token: {}", first_target.to_string());
-        msg!("Max price diff: {}", max_price_diff);
-
-        if (first_target == quote_token) || ((max_price_diff <= 0.0) && (first_target == EnumCount)) {
-            let circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-            require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
-            *circulation -= irma_amount;
-            return Ok(());
-        }
-
-        let first_circulation = self.irma_in_circulation[first_target as usize];
-        let second_circulation = self.irma_in_circulation[quote_token as usize];
-
-        // if we don't have enough reserve to redeem the irma_amount, just error out;
-        // we can't allow redemption from a reserve that is smaller than the irma_amount.
-        require!(irma_amount < second_circulation, CustomError::InsufficientCirculation);
-
-        let first_price = self.mint_price[first_target as usize];
-        let second_price = self.mint_price[quote_token as usize];
-        let first_reserve = self.backing_reserves[first_target as usize];
-        let second_reserve = self.backing_reserves[quote_token as usize];
-
-        // we can't subtract from the first_circulation if the first_circulation is less than irma_amount
-        // so just subtract from the second_circulation
-        if  (first_circulation - irma_amount) <= 0 {
-            let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-            *second_circulation -= irma_amount;
-            return Ok(());
-        }
-
-        let first_price_diff = first_price as f64 - (first_reserve / first_circulation) as f64;
-        let second_price_diff = second_price as f64 - (second_reserve / second_circulation) as f64;
-
-        let post_first_price_diff = first_price as f64 - (first_reserve as f64 / (first_circulation - irma_amount) as f64);
-
-        if post_first_price_diff <= second_price_diff {
-            // if irma_amount is such that conditions would remain the same post adjustment
-            // we can just subtract from the first_circulation
-            let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
-            *first_circulation -= irma_amount;
-        } else if (second_price as f64 - first_price as f64).abs() < 0.01 {
-            // firt and second prices are close enough, need to do linear adjustment
-            // of both first and second circulations
-            let adjustment_amount = irma_amount as f64 * (first_price_diff - second_price_diff) / (first_price_diff + second_price_diff);
-            let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
-            *first_circulation -= adjustment_amount.ceil() as u64;
-            let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-            *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
-        } else {
-            // firt and second prices are not close, need to do quadratic adjustment
-            let p = second_price as f64 - first_price as f64;
-            let v = second_circulation as f64 - irma_amount as f64;
-            let fc = first_circulation as f64;
-            let sc = second_circulation as f64;
-            let sr = second_reserve as f64;
-            let fr = first_reserve as f64;
-
-            // p is always a much smaller number than the rest of the variables
-            let a = -p;
-            let b = sr - fr - p * (v - fc);
-            let c = p * fc * v - fc * sr + fr * (sc + irma_amount as f64);
-
-            let adjustment_amount = (-b + (b.powf(2.0) - 4.0 * a * c).sqrt()) / (2.0 * a);
-            require!(adjustment_amount > 0.0, CustomError::InvalidAmount);
-            require!(adjustment_amount < irma_amount as f64, CustomError::InvalidAmount);
-            let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
-            *first_circulation -= adjustment_amount.ceil() as u64;
-            let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-            *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
-        }
-
-        return Ok(());
+    #[derive(Accounts)]
+    pub struct Initialize<'info> {
+        #[account(init, space=24*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
+        pub state: Account<'info, State>,
+        #[account(mut)]
+        pub irma_admin: Signer<'info>,
+        #[account(address = system_program::ID)]
+        pub system_program: Program<'info, System>,
     }
-}
 
-#[error_code]
-pub enum CustomError {
-    #[msg("Invalid amount provided.")]
-    InvalidAmount,
-    #[msg("Mint price not set.")]
-    MintPriceNotSet,
-    #[msg("Invalid quote token.")]
-    InvalidQuoteToken,
-    #[msg("Insufficient circulation.")]
-    InsufficientCirculation,
-    #[msg("Insufficient reserve.")]
-    InsufficientReserve,
+    #[derive(Accounts)]
+    pub struct SetMintPrice<'info> {
+        #[account(mut, seeds=[b"state".as_ref()], bump)]
+        pub state: Account<'info, State>,
+        #[account(mut)]
+        pub trader: Signer<'info>,
+        #[account(address = system_program::ID)]
+        pub system_program: Program<'info, System>,
+    }
+
+    #[derive(Accounts)]
+    pub struct MintIrma<'info> {
+        #[account(mut, seeds=[b"state".as_ref()], bump)]
+        pub state: Account<'info, State>,
+        #[account(mut)]
+        pub trader: Signer<'info>,
+        #[account(address = system_program::ID)]
+        pub system_program: Program<'info, System>,
+    }
+
+    #[derive(Accounts)]
+    pub struct RedeemIrma<'info> {
+        #[account(mut, seeds=[b"state".as_ref()], bump)]
+        pub state: Account<'info, State>,
+        #[account(mut)]
+        pub trader: Signer<'info>,
+        #[account(address = system_program::ID)]
+        pub system_program: Program<'info, System>,
+    }
+
+    #[account]
+    #[derive(InitSpace)]
+    #[derive(Debug)]
+    pub struct State {
+        #[max_len(BACKING_COUNT)]
+        pub mint_price: Vec<f64>,
+        #[max_len(BACKING_COUNT)]
+        pub backing_reserves: Vec<u64>,
+        #[max_len(BACKING_COUNT)]
+        pub irma_in_circulation: Vec<u64>,
+        pub bump: u8,
+    }
+
+    impl State {
+
+        fn reduce_circulations(&mut self, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
+            let price_differences : Vec<f64> = self.backing_reserves.iter()
+                .enumerate()
+                .filter_map(|(i, reserve)| {
+                    let circulation = self.irma_in_circulation[i];
+                    let redemption_price = *reserve as f64 / circulation as f64;
+                    let mint_price = self.mint_price[i];
+                    if mint_price == 0.0 {
+                        return None;
+                    }
+                    Some(mint_price - redemption_price)
+                })
+                .collect();
+
+            let mut max_price_diff = 0.0;
+            let mut first_target = EnumCount;
+            for (i, price) in price_differences.iter().enumerate() {
+                msg!("{}: {}", i, *price);
+                if *price > max_price_diff {
+                    max_price_diff = *price;
+                    first_target = Stablecoins::from_index(i).unwrap();
+                }
+            }
+            // msg!("Max token: {}", first_target.to_string());
+            msg!("Max price diff: {}", max_price_diff);
+
+            if (first_target == quote_token) || ((max_price_diff <= 0.0) && (first_target == EnumCount)) {
+                let circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+                require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
+                *circulation -= irma_amount;
+                return Ok(());
+            }
+
+            let first_circulation = self.irma_in_circulation[first_target as usize];
+            let second_circulation = self.irma_in_circulation[quote_token as usize];
+
+            // if we don't have enough reserve to redeem the irma_amount, just error out;
+            // we can't allow redemption from a reserve that is smaller than the irma_amount.
+            require!(irma_amount < second_circulation, CustomError::InsufficientCirculation);
+
+            let first_price = self.mint_price[first_target as usize];
+            let second_price = self.mint_price[quote_token as usize];
+            let first_reserve = self.backing_reserves[first_target as usize];
+            let second_reserve = self.backing_reserves[quote_token as usize];
+
+            // we can't subtract from the first_circulation if the first_circulation is less than irma_amount
+            // so just subtract from the second_circulation
+            if  (first_circulation - irma_amount) <= 0 {
+                let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+                *second_circulation -= irma_amount;
+                return Ok(());
+            }
+
+            let first_price_diff = first_price as f64 - (first_reserve / first_circulation) as f64;
+            let second_price_diff = second_price as f64 - (second_reserve / second_circulation) as f64;
+
+            let post_first_price_diff = first_price as f64 - (first_reserve as f64 / (first_circulation - irma_amount) as f64);
+
+            if post_first_price_diff <= second_price_diff {
+                // if irma_amount is such that conditions would remain the same post adjustment
+                // we can just subtract from the first_circulation
+                let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
+                *first_circulation -= irma_amount;
+            } else if (second_price as f64 - first_price as f64).abs() < 0.01 {
+                // firt and second prices are close enough, need to do linear adjustment
+                // of both first and second circulations
+                let adjustment_amount = irma_amount as f64 * (first_price_diff - second_price_diff) / (first_price_diff + second_price_diff);
+                let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
+                *first_circulation -= adjustment_amount.ceil() as u64;
+                let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+                *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
+            } else {
+                // firt and second prices are not close, need to do quadratic adjustment
+                let p = second_price as f64 - first_price as f64;
+                let v = second_circulation as f64 - irma_amount as f64;
+                let fc = first_circulation as f64;
+                let sc = second_circulation as f64;
+                let sr = second_reserve as f64;
+                let fr = first_reserve as f64;
+
+                // p is always a much smaller number than the rest of the variables
+                let a = -p;
+                let b = sr - fr - p * (v - fc);
+                let c = p * fc * v - fc * sr + fr * (sc + irma_amount as f64);
+
+                let adjustment_amount = (-b + (b.powf(2.0) - 4.0 * a * c).sqrt()) / (2.0 * a);
+                require!(adjustment_amount > 0.0, CustomError::InvalidAmount);
+                require!(adjustment_amount < irma_amount as f64, CustomError::InvalidAmount);
+                let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
+                *first_circulation -= adjustment_amount.ceil() as u64;
+                let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+                *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
+            }
+
+            return Ok(());
+        }
+    }
+    
+
+    #[error_code]
+    pub enum CustomError {
+        #[msg("Invalid amount provided.")]
+        InvalidAmount,
+        #[msg("Mint price not set.")]
+        MintPriceNotSet,
+        #[msg("Invalid quote token.")]
+        InvalidQuoteToken,
+        #[msg("Insufficient circulation.")]
+        InsufficientCirculation,
+        #[msg("Insufficient reserve.")]
+        InsufficientReserve,
+    }
 }
