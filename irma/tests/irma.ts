@@ -4,13 +4,13 @@ dotenv.config();
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { Irma } from "../target/types/irma";
+import { Irmamod } from "../target/types/irmamod";
 
 describe("irma", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.irma; // as Program<Irma>;
+  const program = anchor.workspace.irmamod; // as Program<Irma>;
 
   let statePda: PublicKey;
 
