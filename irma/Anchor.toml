@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-irma = "CutKRa6VEmfGQcNv97cL2R1oqNBFpg9voAJbsBXEkF7a"
+irma = "8zs1JbqxqLcCXzBrkMCXyY2wgSW8uk8nxYuMFEfUMQa6"
 
 [registry]
 url = "https://api.apr.dev"
