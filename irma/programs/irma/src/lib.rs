@@ -193,9 +193,12 @@ pub mod irmamod {
         Ok(())
     }
 
+    /// There are three arrays: irma price, which has f64 (8 bytes) values, backing reserves, which has u64 (8 bytes) each, and 
+    /// irma in circulation, which has u64 (8 bytes) each. There's also one byte for decimal points and another byte for the bump.
+    /// The total comes out to 3 x 8 + 2 = 26 bytes per backing reserve stablecoin.
     #[derive(Accounts)]
     pub struct Initialize<'info> {
-        #[account(init, space=24*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
+        #[account(init, space=26*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
         pub state: Account<'info, State>,
         #[account(mut)]
         pub irma_admin: Signer<'info>,
