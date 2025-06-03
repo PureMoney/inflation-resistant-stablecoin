@@ -12,15 +12,17 @@ pub const BACKING_COUNT: usize = Stablecoins::USDE as usize;
 
 declare_id!("8zs1JbqxqLcCXzBrkMCXyY2wgSW8uk8nxYuMFEfUMQa6");
 
+/// IRMA module
+/// FIXME: the decimals are all assumed to be zero, which is not true for all stablecoins.
 #[program]
 pub mod irmamod {
     use super::*;
 
-    // All currently existing stablecoins with over $1B in circulation
+    // All currently existing stablecoins with about $100 M in circulation
     // are supported. This list is not exhaustive and will be updated as new
     // stablecoins are added to the market.
     // Initially, we will support only those stablecoins that exist
-    // on the Solana blockchain (the first three below). 
+    // on the Solana blockchain (the first six below). 
     #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
     pub enum Stablecoins {
         USDT, // <== from Tether, $2.39 B in circulation
@@ -59,23 +61,10 @@ pub mod irmamod {
             }
         }
 
+        /// Converts the Stablecoins enum to an index.
+        /// This is not needed because the index is just "Stablecoins::whatever as usize"
         pub fn to_index(&self) -> usize {
-            match self {
-                Stablecoins::USDT => 0,
-                Stablecoins::USDC => 1,
-                Stablecoins::USDS => 2,
-                Stablecoins::PYUSD => 3,
-                Stablecoins::USDG => 4,
-                Stablecoins::FDUSD => 5,
-                Stablecoins::USDE => 6,
-                Stablecoins::USDP => 7,
-                Stablecoins::SUSD => 8,
-                Stablecoins::ZUSD => 9,
-                Stablecoins::USDR => 10,
-                Stablecoins::DAI => 11,
-                Stablecoins::USD1 => 12,
-                Stablecoins::EnumCount => Stablecoins::EnumCount as usize,
-            }
+            self.clone() as usize
         }
 
         pub fn to_string(&self) -> String {
@@ -160,7 +149,7 @@ pub mod irmamod {
     /// because Truflation updates the inflation data only once per day.
     pub fn set_mint_price(ctx: Context<SetMintPrice>, quote_token: Stablecoins, mint_price: f64) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        require!(state.backing_decimals[quote_token.to_index()] > 0, CustomError::InvalidQuoteToken);
+        require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
         
         let curr_price = state.mint_price.get_mut(quote_token as usize).unwrap();
         require!(mint_price > 0.0, CustomError::InvalidAmount);
@@ -174,7 +163,7 @@ pub mod irmamod {
         require!(amount > 0, CustomError::InvalidAmount);
 
         let state: &mut Account<'_, State> = &mut ctx.accounts.state;
-        require!(state.backing_decimals[quote_token.to_index()] > 0, CustomError::InvalidQuoteToken);
+        require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
 
         let backing_reserve: &mut u64 = state.backing_reserves.get_mut(quote_token as usize).unwrap();
         // require!(*backing_reserve > 0, CustomError::InsufficientReserve);
@@ -194,12 +183,18 @@ pub mod irmamod {
     }
 
     /// RedeemIRMA - user surrenders IRMA in irma_amount, expecting to get back quote_token according to redemption price.
-    /// FIXME: If resulting redemption price increases by more than 0.0000001, then actual redemption price should be updated.
+    /// FIXME: If resulting redemption price increases by more than 0.0000001, then actual redemption price 
+    /// should be updated immediately.
     pub fn redeem_irma(ctx: Context<RedeemIrma>, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
         let state = &mut ctx.accounts.state;
-        require!(state.backing_decimals[quote_token.to_index()] > 0, CustomError::InvalidQuoteToken);
+        require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
 
         if irma_amount == 0 { return Ok(()) };
+
+        // There is a redemption rule: every redemption is limited to 100k IRMA or 10% of the IRMA in circulation (for
+        // the quote token) whichever is smaller.
+        let circulation: u64 = state.irma_in_circulation[quote_token as usize];
+        require!((irma_amount <= 100_000) && (irma_amount <= circulation / 10), CustomError::InvalidIrmaAmount);
 
         state.reduce_circulations(quote_token, irma_amount)?;
 
@@ -262,8 +257,13 @@ pub mod irmamod {
     }
 
 
-    /// ReduceCirculation implementation
-    /// FIXME: Allow for mint_price being less than redemption_price (a period of deflation).
+    /// ReduceCirculations implementation
+    /// This now deals with mint_price being less than redemption_price (a period of deflation).
+    /// If the price of the underlying reserve goes up with respect to USD, its exchange rate with IRMA
+    /// would improve (i.e. IRMA would be worth less in terms of the reserve). In this case, the system
+    /// would be expected to have a higher redemption price for IRMA than mint price; however, because
+    /// the objective is always to preserve the backing, the system will not allow the mint price 
+    /// to be less than the redemption price. Instead, it will simply set the redemption price to the mint price.
     impl State {
 
         fn reduce_circulations(&mut self, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
@@ -283,7 +283,7 @@ pub mod irmamod {
                     let redemption_price = *reserve as f64 / circulation as f64;
                     let mint_price = self.mint_price[i];
                     if mint_price == 0.0 || self.backing_decimals[i] == 0 {
-                        msg!("Skipping index {}: mint_price is 0.0 or backing_decimals is 0", i);
+                        msg!("Skipping {}: mint_price is 0.0 or backing_decimals is 0", Stablecoins::from_index(i).unwrap().to_string());
                         return Some(0.0);
                     }
                     count += 1;
@@ -299,9 +299,10 @@ pub mod irmamod {
             average_diff /= count as f64;
             msg!("Average price difference: {}", average_diff);
 
-            let min_diff = 0.1;
-            let mut max_price_diff = average_diff;
-            let mut first_target = quote_token;
+            let min_diff: f64 = 0.1; // price differences below this are ignored
+
+            let mut max_price_diff: f64 = average_diff;
+            let mut first_target: Stablecoins = quote_token;
             for (i, price_diff) in price_differences.iter().enumerate() {
                 msg!("{}: {}", i, *price_diff);
                 if (*price_diff - max_price_diff).abs() > min_diff {
@@ -313,89 +314,98 @@ pub mod irmamod {
             // msg!("Max token: {}", first_target.to_string());
             msg!("Max price diff: {}", max_price_diff);
 
+            let circulation: &mut u64 = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+            let reserve: &mut u64 = self.backing_reserves.get_mut(quote_token as usize).unwrap();
+            let mut redemption_price: f64 = *reserve as f64 / *circulation as f64;
+
             // if max price diff does not deviate much from average diff or all inflation-adjusted prices 
-            // are less than the redemption prices, then redemption price calc is normal.
-            if (first_target == quote_token) || ((max_price_diff - average_diff).abs() < min_diff)
-                || (average_diff < 0.0) {
-                let circulation: &mut u64 = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-                if price_differences[quote_token.to_index()] > 0.0 {
+            // are less than the redemption prices, then reductions pertain to quote_token only.
+            if ((max_price_diff - average_diff).abs() < min_diff) || (average_diff < 0.0) {
+                if price_differences[quote_token as usize] > 0.0 || first_target == quote_token {
+                    msg!("No significant price difference, adjusting only the quote token.");
+                    // If the price difference is positive, it means that the mint price is higher than the redemption price;
+                    // in this case, we need to reduce IRMA in circulation by the irma_amount.
                     require!(*circulation >= irma_amount, CustomError::InsufficientCirculation);
                     *circulation -= irma_amount;
+                    let backing_amount: u64 = (irma_amount as f64 * redemption_price) as u64;
+                    require!(*reserve >= backing_amount, CustomError::InsufficientReserve);
+                    *reserve -= backing_amount;
+                    msg!("Redeemed {} IRMA for {} backing tokens.", irma_amount, backing_amount);
+                } else {
+                    // If the price difference is negative, it means that the mint price is lower than the redemption price;
+                    // in this case, we need to set the redemption price eq to the mint price in order to preserve the backing.
+                    // We also do not reduce IRMA in circulation, which effectively means that we are still draining the reserve,
+                    // but not by much, while the reduction in the ratio of reserve to IRMA in circulation (normally the
+                    // redemption price) goes down faster than if we also reduced IRMA in circulation. 
+                    require!(irma_amount <= *circulation, CustomError::InsufficientCirculation);
+                    require!(redemption_price > self.mint_price[quote_token as usize], CustomError::InvalidBacking);
+                    redemption_price = self.mint_price[quote_token as usize];
+                    let backing_amount: u64 = (irma_amount as f64 * redemption_price) as u64;
+                    require!(*reserve >= backing_amount, CustomError::InsufficientReserve);
+                    *reserve -= backing_amount;
+                    msg!("Redeemed {} IRMA for {} backing tokens.", irma_amount, backing_amount);
                 }
-                let reserve: &mut u64 = self.backing_reserves.get_mut(quote_token as usize).unwrap();
-                let redemption_price: f64 = *reserve as f64 / *circulation as f64;
-                let backing_amount: u64 = (irma_amount as f64 * redemption_price) as u64;
-                require!(*reserve >= backing_amount, CustomError::InsufficientReserve);
-                *reserve -= backing_amount;
-                msg!("Redeemed {} IRMA for {} backing tokens.", irma_amount, backing_amount);
                 msg!("New reserve for {}: {}", quote_token.to_string(), *reserve);
                 msg!("New circulation for {}: {}", quote_token.to_string(), *circulation);
                 return Ok(());
             }
-            msg!("First target: {}", first_target.to_string());
+            // All the following code is for the normal case, in which the mint price is higher than or equal to the
+            // redemption price.
+            msg!("First target for normal adjustments: {}", first_target.to_string());
 
-            let first_circulation = self.irma_in_circulation[first_target as usize];
-            let second_circulation = self.irma_in_circulation[quote_token as usize];
+            // no matter what, we need to reduce the second_target reserve
+            let backing_amount: u64 = (irma_amount as f64 * redemption_price) as u64;
+            require!(*reserve >= backing_amount, CustomError::InsufficientReserve);
+            *reserve -= backing_amount;
+
+            let first_circulation: u64 = self.irma_in_circulation[first_target as usize];
+            let second_circulation: u64 = self.irma_in_circulation[quote_token as usize];
 
             // if we don't have enough reserve to redeem the irma_amount, just error out;
             // we can't allow redemption from a reserve that is smaller than the irma_amount.
             require!(irma_amount < second_circulation, CustomError::InsufficientCirculation);
+            require!(irma_amount < first_circulation, CustomError::InsufficientCirculation);
 
-            let first_price = self.mint_price[first_target as usize];
-            let second_price = self.mint_price[quote_token as usize];
-            let first_reserve = self.backing_reserves[first_target as usize];
-            let second_reserve = self.backing_reserves[quote_token as usize];
+            let first_price: f64 = self.mint_price[first_target as usize];
+            let second_price: f64 = self.mint_price[quote_token as usize];
+            let first_reserve: u64 = self.backing_reserves[first_target as usize];
+            let second_reserve: u64 = self.backing_reserves[quote_token as usize];
 
-            // we can't subtract from the first_circulation if the first_circulation is less than irma_amount
-            // so just subtract from the second_circulation
-            if first_circulation < irma_amount {
-                require!(second_circulation >= irma_amount, CustomError::InsufficientCirculation);
+            let first_price_diff: f64 = first_price - (first_reserve / first_circulation) as f64;
+            let post_second_price_diff: f64 = second_price - (second_reserve as f64 - irma_amount as f64 / second_price) / second_circulation as f64;
+            let post_first_price_diff: f64 = first_price - (first_reserve as f64 / (first_circulation - irma_amount) as f64);
+
+            if first_price_diff <= post_first_price_diff {
+                msg!("--> First price diff is less than or equal to post first price diff, adjusting second circulation only.");
+                // if irma_amount is such that conditions would remain the same post adjustment
+                // we can just subtract from the second_circulation
                 let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
                 *second_circulation -= irma_amount;
-                return Ok(());
-            }
-
-            let first_price_diff = first_price - (first_reserve / first_circulation) as f64;
-            let second_price_diff = second_price - (second_reserve / second_circulation) as f64;
-
-            let post_first_price_diff = first_price - (first_reserve as f64 / (first_circulation - irma_amount) as f64);
-
-            if post_first_price_diff <= second_price_diff {
+            } else
+            if post_first_price_diff <= post_second_price_diff {
+                msg!("--> Post first price diff is less than or equal to second price diff, 
+                        adjusting first circulation only.");
                 // if irma_amount is such that conditions would remain the same post adjustment
                 // we can just subtract from the first_circulation
                 let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
                 *first_circulation -= irma_amount;
-            } else if (second_price - first_price as f64).abs() < 0.01 {
-                // firt and second prices are close enough, need to do linear adjustment
-                // of both first and second circulations
-                let adjustment_amount = irma_amount as f64 * (first_price_diff - second_price_diff) / (first_price_diff + second_price_diff);
-                let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
-                *first_circulation -= adjustment_amount.ceil() as u64;
-                let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
-                *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
             } else {
-                // firt and second prices are not close, need to do quadratic adjustment
-                let p = second_price - first_price;
-                let v = second_circulation as f64 - irma_amount as f64;
-                let fc = first_circulation as f64;
-                let sc = second_circulation as f64;
-                let sr = second_reserve as f64;
-                let fr = first_reserve as f64;
-
-                // p is always a much smaller number than the rest of the variables
-                let a = -p;
-                let b = sr - fr - p * (v - fc);
-                let c = p * fc * v - fc * sr + fr * (sc + irma_amount as f64);
-
-                let adjustment_amount = (-b + (b.powf(2.0) - 4.0 * a * c).sqrt()) / (2.0 * a);
+                msg!("--> First and second prices are close enough, adjusting both circulations linearly.");
+                // Do simple linear adjustment of both first and second circulations
+                let adjustment_amount: f64 = irma_amount as f64 * (first_price_diff - post_second_price_diff) / (first_price_diff + post_second_price_diff);
+                msg!("Adjustment amount: {}", adjustment_amount);
                 require!(adjustment_amount > 0.0, CustomError::InvalidAmount);
-                require!(adjustment_amount < irma_amount as f64, CustomError::InvalidAmount);
-                let first_circulation = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
+                require!(adjustment_amount <= irma_amount as f64, CustomError::InvalidAmount);
+                msg!("Adjusting first circulation by {} and second circulation by {}", adjustment_amount.ceil(), irma_amount as f64 - adjustment_amount.ceil());
+                let first_circulation: &mut u64 = self.irma_in_circulation.get_mut(first_target as usize).unwrap();
                 *first_circulation -= adjustment_amount.ceil() as u64;
-                let second_circulation = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
+                let second_circulation: &mut u64 = self.irma_in_circulation.get_mut(quote_token as usize).unwrap();
                 *second_circulation -= irma_amount - adjustment_amount.ceil() as u64;
-            }
-
+            } 
+            msg!("New reserve for {}: {}", first_target.to_string(), self.backing_reserves[first_target as usize]);
+            msg!("New reserve for {}: {}", quote_token.to_string(), self.backing_reserves[quote_token as usize]);
+            msg!("New circulation for {}: {}", first_target.to_string(), self.irma_in_circulation[first_target as usize]);
+            msg!("New circulation for {}: {}", quote_token.to_string(), self.irma_in_circulation[quote_token as usize]);
             return Ok(());
         }
     }
