@@ -9,10 +9,10 @@ mod tests {
     use anchor_lang::prelude::Account;
     use anchor_lang::prelude::Program;
     use anchor_lang::context::Context;
-    use irma::irmamod::CustomError;
+    use irma::pricing::CustomError;
     use irma::BACKING_COUNT;
-    use irma::irmamod::{self, Stablecoins, State}; //, CustomError};
-    use irma::irmamod::{initialize, set_mint_price, mint_irma, redeem_irma};
+    use irma::pricing::{self, Stablecoins, State}; //, CustomError};
+    use irma::pricing::{initialize, set_mint_price, mint_irma, redeem_irma};
 
     fn allocate_state() -> State {
         State {
@@ -161,16 +161,16 @@ mod tests {
         let state_account_static: &'static AccountInfo<'static> = Box::leak(Box::new(state_account_info));
         let irma_admin_account_static: &'static AccountInfo<'static> = Box::leak(Box::new(irma_admin_account_info));
         let sys_account_static: &'static AccountInfo<'static> = Box::leak(Box::new(sys_account_info));
-        let mut accounts: irmamod::Initialize<'_> = irmamod::Initialize {
+        let mut accounts: pricing::Initialize<'_> = pricing::Initialize {
             state: Account::try_from(state_account_static).unwrap(),
             irma_admin: Signer::try_from(irma_admin_account_static).unwrap(),
             system_program: Program::try_from(sys_account_static).unwrap(),
         };
-        let ctx: Context<irmamod::Initialize> = Context::new(
+        let ctx: Context<pricing::Initialize> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::InitializeBumps::default(), // Use default bumps if not needed
+            pricing::InitializeBumps::default(), // Use default bumps if not needed
         );
         let result: std::result::Result<(), Error> = initialize(ctx);
         assert!(result.is_ok());
@@ -187,16 +187,16 @@ mod tests {
         let (state_account, irma_admin_account, sys_account) 
                 = initialize_anchor(program_id);
         // Bind to variables to extend their lifetime
-        let mut accounts: irmamod::Initialize<'_> = irmamod::Initialize {
+        let mut accounts: pricing::Initialize<'_> = pricing::Initialize {
             state: state_account.clone(),
             irma_admin: irma_admin_account.clone(),
             system_program: sys_account.clone(),
         };
-        let ctx: Context<irmamod::Initialize> = Context::new(
+        let ctx: Context<pricing::Initialize> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::InitializeBumps::default(), // Use default bumps if not needed
+            pricing::InitializeBumps::default(), // Use default bumps if not needed
         );
         let result: std::result::Result<(), Error> = initialize(ctx);
         assert!(result.is_ok());
@@ -212,16 +212,16 @@ mod tests {
         let (state_account, irma_admin_account, sys_account) 
                 = initialize_anchor(program_id);
         // Bind to variables to extend their lifetime
-        let mut accounts: irmamod::SetMintPrice<'_> = irmamod::SetMintPrice {
+        let mut accounts: pricing::SetMintPrice<'_> = pricing::SetMintPrice {
             state: state_account.clone(),
             trader: irma_admin_account.clone(),
             system_program: sys_account.clone(),
         };
-        let mut ctx: Context<irmamod::SetMintPrice> = Context::new(
+        let mut ctx: Context<pricing::SetMintPrice> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::SetMintPriceBumps::default(), // Use default bumps if not needed
+            pricing::SetMintPriceBumps::default(), // Use default bumps if not needed
         );
         let mut result: std::result::Result<(), Error> = set_mint_price(ctx, Stablecoins::USDT, 1.5);
         assert!(result.is_ok());
@@ -230,7 +230,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::SetMintPriceBumps::default(), // Use default bumps if not needed
+            pricing::SetMintPriceBumps::default(), // Use default bumps if not needed
         );
         result = set_mint_price(ctx, Stablecoins::USDC, 1.8);
         assert!(result.is_ok());
@@ -238,7 +238,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::SetMintPriceBumps::default(), // Use default bumps if not needed
+            pricing::SetMintPriceBumps::default(), // Use default bumps if not needed
         );
         result = set_mint_price(ctx, Stablecoins::FDUSD, 1.3);
         assert!(result.is_ok());
@@ -257,7 +257,7 @@ mod tests {
         let (state_account, irma_admin_account, sys_account) 
                 = initialize_anchor(program_id);
         // Bind to variables to extend their lifetime
-        let mut accounts: irmamod::MintIrma<'_> = irmamod::MintIrma {
+        let mut accounts: pricing::MintIrma<'_> = pricing::MintIrma {
             state: state_account.clone(),
             trader: irma_admin_account.clone(),
             system_program: sys_account.clone(),
@@ -269,11 +269,11 @@ mod tests {
         msg!("IRMA in circulation for USDT: {:?}", accounts.state.irma_in_circulation[Stablecoins::USDT as usize]);
         msg!("IRMA in circulation for PYUSD: {:?}", accounts.state.irma_in_circulation[Stablecoins::PYUSD as usize]);
         msg!("IRMA in circulation for USDG: {:?}", accounts.state.irma_in_circulation[Stablecoins::USDG as usize]);
-        let mut ctx: Context<irmamod::MintIrma> = Context::new(
+        let mut ctx: Context<pricing::MintIrma> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::MintIrmaBumps::default(), // Use default bumps if not needed
+            pricing::MintIrmaBumps::default(), // Use default bumps if not needed
         );
         let mut result = mint_irma(ctx, Stablecoins::USDT, 100);
         match result {
@@ -288,7 +288,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::MintIrmaBumps::default(), // Use default bumps if not needed
+            pricing::MintIrmaBumps::default(), // Use default bumps if not needed
         );
         result = mint_irma(ctx, Stablecoins::PYUSD, 1000);
         match result {
@@ -303,7 +303,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::MintIrmaBumps::default(), // Use default bumps if not needed
+            pricing::MintIrmaBumps::default(), // Use default bumps if not needed
         );
         result = mint_irma(ctx, Stablecoins::USDG, 10000);
         match result {
@@ -333,7 +333,7 @@ mod tests {
         let program_id: &'static Pubkey = Box::leak(Box::new(Pubkey::new_from_array(irma::ID.to_bytes())));
         let (state_account, irma_admin_account, sys_account) 
             = initialize_anchor(program_id);
-        let mut accounts: irmamod::RedeemIrma<'_> = irmamod::RedeemIrma {
+        let mut accounts: pricing::RedeemIrma<'_> = pricing::RedeemIrma {
             state: state_account.clone(),
             trader: irma_admin_account.clone(),
             system_program: sys_account.clone(),
@@ -354,11 +354,11 @@ mod tests {
         msg!("Current prices: {:?}", accounts.state.mint_price);
         msg!("Backing reserves: {:?}", accounts.state.backing_reserves);
         msg!("IRMA in circulation: {:?}", accounts.state.irma_in_circulation);
-        let mut ctx: Context<irmamod::RedeemIrma> = Context::new(
+        let mut ctx: Context<pricing::RedeemIrma> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         let mut result: std::result::Result<(), Error> = redeem_irma(ctx, Stablecoins::USDC, 10);
         match result {
@@ -374,7 +374,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         result = redeem_irma(ctx, Stablecoins::USDT, 20);
         match result {
@@ -389,7 +389,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         result = redeem_irma(ctx, Stablecoins::PYUSD, 30);
         match result {
@@ -404,7 +404,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         result = redeem_irma(ctx, Stablecoins::USDG, 40);
         match result {
@@ -419,7 +419,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         result = redeem_irma(ctx, Stablecoins::FDUSD, 50);
         match result {
@@ -434,7 +434,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
 
         msg!("Mid-state for USDT before further redemption: {:?}", 
@@ -453,7 +453,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         result = redeem_irma(ctx, Stablecoins::USDS, 10);
         match result {
@@ -480,7 +480,7 @@ mod tests {
         let program_id: &'static Pubkey = Box::leak(Box::new(Pubkey::new_from_array(irma::ID.to_bytes())));
         let (state_account, irma_admin_account, sys_account) 
             = initialize_anchor(program_id);
-        let mut accounts: irmamod::RedeemIrma<'_> = irmamod::RedeemIrma {
+        let mut accounts: pricing::RedeemIrma<'_> = pricing::RedeemIrma {
             state: state_account.clone(),
             trader: irma_admin_account.clone(),
             system_program: sys_account.clone(),
@@ -503,11 +503,11 @@ mod tests {
         msg!("Current prices: {:?}", accounts.state.mint_price);
         msg!("Backing reserves: {:?}", accounts.state.backing_reserves);
         msg!("IRMA in circulation: {:?}", accounts.state.irma_in_circulation);
-        let mut ctx: Context<irmamod::RedeemIrma> = Context::new(
+        let mut ctx: Context<pricing::RedeemIrma> = Context::new(
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         // Test for near maximum redemption, multiple times, until it fails.
         // What we expect is that these repeated redemptions will equalize the differences between
@@ -518,7 +518,7 @@ mod tests {
                 program_id,
                 &mut accounts,
                 &[],
-                irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+                pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
             );
             reslt = redeem_irma(ctx, Stablecoins::USDT, 100_000);
             match reslt {
@@ -535,7 +535,7 @@ mod tests {
             program_id,
             &mut accounts,
             &[],
-            irmamod::RedeemIrmaBumps::default(), // Use default bumps if not needed
+            pricing::RedeemIrmaBumps::default(), // Use default bumps if not needed
         );
         msg!("-------------------------------------------------------------------------");
         msg!("Redeem IRMA successful:");
