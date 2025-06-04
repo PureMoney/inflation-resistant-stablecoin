@@ -11,7 +11,7 @@ mod tests {
     use anchor_lang::context::Context;
     use irma::pricing::CustomError;
     use irma::BACKING_COUNT;
-    use irma::pricing::{self, Stablecoins, State}; //, CustomError};
+    use irma::pricing::{self, Stablecoins, State};
     use irma::pricing::{initialize, set_mint_price, mint_irma, redeem_irma};
 
     fn allocate_state() -> State {
