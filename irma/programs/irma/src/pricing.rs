@@ -2,136 +2,134 @@
 // #![feature(trivial_bounds)]
 // #[cfg(feature = "idl-build")]
 
+use solana_sdk_ids::system_program;
+use bytemuck::{Zeroable};
 use anchor_lang::prelude::*;
-use anchor_lang::*;
+// use anchor_lang::*;
 
-use crate::Stablecoins::*;
+use crate::pricing::Stablecoins::*;
+//     use super::*;
+//     use crate::pricing::{Stablecoins, BACKING_COUNT};
 
 // The number of stablecoins that are currently supported by the IRMA program.
 pub const BACKING_COUNT: usize = Stablecoins::USDE as usize; // 6
 
+// All currently existing stablecoins with about $100 M in circulation
+// are supported. This list is not exhaustive and will be updated as new
+// stablecoins are added to the market.
+// Initially, we will support only those stablecoins that exist
+// on the Solana blockchain (the first six below). 
+// #[derive(Debug, AnchorSerialize, AnchorDeserialize, Zeroable, Pod, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Zeroable, Copy, Clone, PartialEq, Eq)]
+#[repr(C)]
+#[allow(clippy::upper_case_acronyms)]
+pub enum Stablecoins {
+    USDT, // <== from Tether, $2.39 B in circulation
+    USDC, // <== from Circle, $8.9 B in circulation
+    USDS, // <== from Sky (previously MakerDAO) #19, $82. M in circulation
+    PYUSD, // <== from PayPal #98, $224 M in circulation
+    USDG, // <== from Singapore #263, $96 M in circulation
+    FDUSD, // <== First Digital USD, $104 M in circulation
+    USDE, // from Ethena #31, $9.9 M in circulation
+    USDP, // from Paxos #551, $1.66 M in circulation
+    SUSD, // from Solayer, has 4 to 5% yield #839, $13.9 M in circulation
+    ZUSD, // from GMO-Z #1165, $8.9 M in circulation
+    USDR, // from StabIR #1884, does not exist on Solana yet
+    DAI,  // thru Wormhole, very low liquidity in Solana
+    USD1,
+    EnumCount
+}
+
+impl Stablecoins {
+    pub fn from_index(index: usize) -> Option<Self> {
+        match index {
+            0 => Some(Stablecoins::USDT),
+            1 => Some(Stablecoins::USDC),
+            2 => Some(Stablecoins::USDS),
+            3 => Some(Stablecoins::PYUSD),
+            4 => Some(Stablecoins::USDG),
+            5 => Some(Stablecoins::FDUSD),
+            6 => Some(Stablecoins::USDE),
+            7 => Some(Stablecoins::USDP),
+            8 => Some(Stablecoins::SUSD),
+            9 => Some(Stablecoins::ZUSD),
+            10 => Some(Stablecoins::USDR),
+            11 => Some(Stablecoins::DAI),
+            12 => Some(Stablecoins::USD1),
+            _ => None,
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Stablecoins::USDT => "USDT".to_string(),
+            Stablecoins::USDC => "USDC".to_string(),
+            Stablecoins::USDS => "USDS".to_string(),
+            Stablecoins::PYUSD => "PYUSD".to_string(),
+            Stablecoins::USDG => "USDG".to_string(),
+            Stablecoins::FDUSD => "FDUSD".to_string(),
+            Stablecoins::USDE => "USDE".to_string(),
+            Stablecoins::USDP => "USDP".to_string(),
+            Stablecoins::SUSD => "SUSD".to_string(),
+            Stablecoins::ZUSD => "ZUSD".to_string(),
+            Stablecoins::USDR => "USDR".to_string(),
+            Stablecoins::DAI => "DAI".to_string(),
+            Stablecoins::USD1 => "USD1".to_string(),
+            Stablecoins::EnumCount => "EnumCount".to_string(),
+        }
+    }
+
+    pub fn from_string(s: &str) -> Self {
+        match s {
+            "USDT" => Stablecoins::USDT,
+            "USDC" => Stablecoins::USDC,
+            "USDS" => Stablecoins::USDS,
+            "PYUSD" => Stablecoins::PYUSD,
+            "USDG" => Stablecoins::USDG,
+            "FDUSD" => Stablecoins::FDUSD,
+            "USDE" => Stablecoins::USDE,
+            "USDP" => Stablecoins::USDP,
+            "SUSD" => Stablecoins::SUSD,
+            "ZUSD" => Stablecoins::ZUSD,
+            "USDR" => Stablecoins::USDR,
+            "DAI" => Stablecoins::DAI,
+            "USD1" => Stablecoins::USD1,
+            _ => Stablecoins::EnumCount,
+        }
+    }
+}
+
+
 /// IRMA pricing module
 /// FIXME: the decimals are all assumed to be zero, which is not true for all stablecoins.
-pub mod pricing {
-    use super::*;
-
-    // All currently existing stablecoins with about $100 M in circulation
-    // are supported. This list is not exhaustive and will be updated as new
-    // stablecoins are added to the market.
-    // Initially, we will support only those stablecoins that exist
-    // on the Solana blockchain (the first six below). 
-    #[derive(Debug, AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
-    pub enum Stablecoins {
-        USDT, // <== from Tether, $2.39 B in circulation
-        USDC, // <== from Circle, $8.9 B in circulation
-        USDS, // <== from Sky (previously MakerDAO) #19, $82. M in circulation
-        PYUSD, // <== from PayPal #98, $224 M in circulation
-        USDG, // <== from Singapore #263, $96 M in circulation
-        FDUSD, // <== First Digital USD, $104 M in circulation
-        USDE, // from Ethena #31, $9.9 M in circulation
-        USDP, // from Paxos #551, $1.66 M in circulation
-        SUSD, // from Solayer, has 4 to 5% yield #839, $13.9 M in circulation
-        ZUSD, // from GMO-Z #1165, $8.9 M in circulation
-        USDR, // from StabIR #1884, does not exist on Solana yet
-        DAI,  // thru Wormhole, very low liquidity in Solana
-        USD1,
-        EnumCount
-    }
-
-    impl Stablecoins {
-        pub fn from_index(index: usize) -> Option<Self> {
-            match index {
-                0 => Some(Stablecoins::USDT),
-                1 => Some(Stablecoins::USDC),
-                2 => Some(Stablecoins::USDS),
-                3 => Some(Stablecoins::PYUSD),
-                4 => Some(Stablecoins::USDG),
-                5 => Some(Stablecoins::FDUSD),
-                6 => Some(Stablecoins::USDE),
-                7 => Some(Stablecoins::USDP),
-                8 => Some(Stablecoins::SUSD),
-                9 => Some(Stablecoins::ZUSD),
-                10 => Some(Stablecoins::USDR),
-                11 => Some(Stablecoins::DAI),
-                12 => Some(Stablecoins::USD1),
-                _ => None,
-            }
-        }
-
-        /// Converts the Stablecoins enum to an index.
-        /// This is not needed because the index is just "Stablecoins::whatever as usize"
-        pub fn to_index(&self) -> usize {
-            self.clone() as usize
-        }
-
-        pub fn to_string(&self) -> String {
-            match self {
-                Stablecoins::USDT => "USDT".to_string(),
-                Stablecoins::USDC => "USDC".to_string(),
-                Stablecoins::USDS => "USDS".to_string(),
-                Stablecoins::PYUSD => "PYUSD".to_string(),
-                Stablecoins::USDG => "USDG".to_string(),
-                Stablecoins::FDUSD => "FDUSD".to_string(),
-                Stablecoins::USDE => "USDE".to_string(),
-                Stablecoins::USDP => "USDP".to_string(),
-                Stablecoins::SUSD => "SUSD".to_string(),
-                Stablecoins::ZUSD => "ZUSD".to_string(),
-                Stablecoins::USDR => "USDR".to_string(),
-                Stablecoins::DAI => "DAI".to_string(),
-                Stablecoins::USD1 => "USD1".to_string(),
-                Stablecoins::EnumCount => "EnumCount".to_string(),
-            }
-        }
-
-        pub fn from_string(s: &str) -> Self {
-            match s {
-                "USDT" => Stablecoins::USDT,
-                "USDC" => Stablecoins::USDC,
-                "USDS" => Stablecoins::USDS,
-                "PYUSD" => Stablecoins::PYUSD,
-                "USDG" => Stablecoins::USDG,
-                "FDUSD" => Stablecoins::FDUSD,
-                "USDE" => Stablecoins::USDE,
-                "USDP" => Stablecoins::USDP,
-                "SUSD" => Stablecoins::SUSD,
-                "ZUSD" => Stablecoins::ZUSD,
-                "USDR" => Stablecoins::USDR,
-                "DAI" => Stablecoins::DAI,
-                "USD1" => Stablecoins::USD1,
-                _ => Stablecoins::EnumCount,
-            }
-        }
-    }
-
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
-        let state = &mut ctx.accounts.state;
+        let state = &mut ctx.accounts.state.load_init()?;
         if state.mint_price.len() > 0 {
             return Ok(());
         }
-        state.mint_price = Vec::<f64>::with_capacity(EnumCount as usize);
-        msg!("Vec capacity: {:?}", state.mint_price.capacity());
-        state.backing_reserves = Vec::<u64>::with_capacity(EnumCount as usize);
-        state.irma_in_circulation = Vec::<u64>::with_capacity(EnumCount as usize);
-        state.backing_decimals = Vec::<u8>::with_capacity(EnumCount as usize);
-        state.mint_price = vec![1.0; BACKING_COUNT];
+        // state.mint_price = Vec::<f64>::with_capacity(EnumCount as usize);
+        // msg!("Vec capacity: {:?}", state.mint_price.capacity());
+        // state.backing_reserves = Vec::<u64>::with_capacity(EnumCount as usize);
+        // state.irma_in_circulation = Vec::<u64>::with_capacity(EnumCount as usize);
+        // state.backing_decimals = Vec::<u8>::with_capacity(EnumCount as usize);
+        state.mint_price = [1.0; EnumCount as usize]; // Initialize with 1.0 for each stablecoin
         msg!("Vec length: {:?}", state.mint_price.len());
-        state.irma_in_circulation = vec![1; BACKING_COUNT];
-        state.backing_reserves = vec![0; BACKING_COUNT];
+        state.irma_in_circulation = [1; EnumCount as usize];
+        state.backing_reserves = [0; EnumCount as usize];
         // USDR and USD1 are not yet in Solana, so we set their decimals to 
         // the following are also set to 0 (disabled): USDE, USDP, SUSD, ZUSD, and DAI.
-        state.backing_decimals = vec![6, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0];
-        state.bump = 13u8; // Bump seed for the PDA
+        state.backing_decimals = [6, 6, 6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0];
         Ok(())
     }
 
-    pub fn hello(ctx: Context<SetMintPrice>) -> Result<()> {
-        let state = &mut ctx.accounts.state;
+    pub fn hello(ctx: Context<IrmaCommon>) -> Result<()> {
+        let mut state = ctx.accounts.state.load_mut()?;
         if state.mint_price.len() == 0 {
-            state.mint_price = vec![1.0; BACKING_COUNT];
-            state.backing_reserves = vec![0; BACKING_COUNT];
-            state.irma_in_circulation = vec![0; BACKING_COUNT];
+            state.mint_price = [1.0; EnumCount as usize];
+            state.backing_reserves = [0; EnumCount as usize];
+            state.irma_in_circulation = [0; EnumCount as usize];
         }
         msg!("State initialized with mint prices: {:?}", state.mint_price);
         msg!("Backing reserves: {:?}", state.backing_reserves);
@@ -141,11 +139,11 @@ pub mod pricing {
         Ok(())
     }
 
-    /// SetMintPrice of IRMA expressed in terms of a given quote token.
+    /// IrmaCommon of IRMA expressed in terms of a given quote token.
     /// This should be called for every backing stablecoin supported, only once per day
     /// because Truflation updates the inflation data only once per day.
-    pub fn set_mint_price(ctx: Context<SetMintPrice>, quote_token: Stablecoins, mint_price: f64) -> Result<()> {
-        let state = &mut ctx.accounts.state;
+    pub fn set_mint_price(ctx: Context<IrmaCommon>, quote_token: Stablecoins, mint_price: f64) -> Result<()> {
+        let mut state = ctx.accounts.state.load_mut()?;
         require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
         
         let curr_price = state.mint_price.get_mut(quote_token as usize).unwrap();
@@ -156,10 +154,10 @@ pub mod pricing {
 
     /// Mint IRMA tokens for a given amount of quote token.
     /// FIXME: Currently assumes that decimal point is zero digits for both IRMA and quote token.
-    pub fn mint_irma(ctx: Context<MintIrma>, quote_token: Stablecoins, amount: u64) -> Result<()> {
+    pub fn mint_irma(ctx: Context<IrmaCommon>, quote_token: Stablecoins, amount: u64) -> Result<()> {
         require!(amount > 0, CustomError::InvalidAmount);
 
-        let state: &mut Account<'_, State> = &mut ctx.accounts.state;
+        let mut state = ctx.accounts.state.load_mut()?;
         require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
 
         let backing_reserve: &mut u64 = state.backing_reserves.get_mut(quote_token as usize).unwrap();
@@ -182,8 +180,8 @@ pub mod pricing {
     /// RedeemIRMA - user surrenders IRMA in irma_amount, expecting to get back quote_token according to redemption price.
     /// FIXME: If resulting redemption price increases by more than 0.0000001, then actual redemption price 
     /// should be updated immediately.
-    pub fn redeem_irma(ctx: Context<RedeemIrma>, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
-        let state = &mut ctx.accounts.state;
+    pub fn redeem_irma(ctx: Context<IrmaCommon>, quote_token: Stablecoins, irma_amount: u64) -> Result<()> {
+        let mut state = ctx.accounts.state.load_mut()?;
         require!(state.backing_decimals[quote_token as usize] > 0, CustomError::InvalidQuoteToken);
 
         if irma_amount == 0 { return Ok(()) };
@@ -200,8 +198,8 @@ pub mod pricing {
 
     #[derive(Accounts)]
     pub struct Initialize<'info> {
-        #[account(init, space=26*BACKING_COUNT, payer=irma_admin, seeds=[b"state".as_ref()], bump)]
-        pub state: Account<'info, State>,
+        #[account(init, space = State::LEN, payer = irma_admin, seeds = [b"irma_state"], bump)]
+        pub state: AccountLoader<'info, State>,
         #[account(mut)]
         pub irma_admin: Signer<'info>,
         #[account(address = system_program::ID)]
@@ -209,49 +207,30 @@ pub mod pricing {
     }
 
     #[derive(Accounts)]
-    pub struct SetMintPrice<'info> {
-        #[account(mut, seeds=[b"state".as_ref()], bump)]
-        pub state: Account<'info, State>,
+    pub struct IrmaCommon<'info> {
+        #[account(init, space = State::LEN, payer = trader, seeds = [b"irma_state"], bump)]
+        pub state: AccountLoader<'info, State>,
         #[account(mut)]
         pub trader: Signer<'info>,
         #[account(address = system_program::ID)]
         pub system_program: Program<'info, System>,
     }
 
-    #[derive(Accounts)]
-    pub struct MintIrma<'info> {
-        #[account(mut, seeds=[b"state".as_ref()], bump)]
-        pub state: Account<'info, State>,
-        #[account(mut)]
-        pub trader: Signer<'info>,
-        #[account(address = system_program::ID)]
-        pub system_program: Program<'info, System>,
-    }
-
-    #[derive(Accounts)]
-    pub struct RedeemIrma<'info> {
-        #[account(mut, seeds=[b"state".as_ref()], bump)]
-        pub state: Account<'info, State>,
-        #[account(mut)]
-        pub trader: Signer<'info>,
-        #[account(address = system_program::ID)]
-        pub system_program: Program<'info, System>,
-    }
-
-    #[account]
-    #[derive(InitSpace)]
+    #[account(zero_copy)]
     #[derive(Debug)]
     pub struct State {
-        #[max_len(BACKING_COUNT)]
-        pub mint_price: Vec<f64>,
-        #[max_len(BACKING_COUNT)]
-        pub backing_reserves: Vec<u64>,
-        #[max_len(BACKING_COUNT)]
-        pub backing_decimals: Vec<u8>,
-        #[max_len(BACKING_COUNT)]
-        pub irma_in_circulation: Vec<u64>,
-        pub bump: u8,
+        pub mint_price: [f64; EnumCount as usize], // mint price of IRMA in terms of the backing stablecoin
+        pub backing_reserves: [u64; EnumCount as usize], // backing reserves in terms of the backing stablecoin
+        pub irma_in_circulation: [u64; EnumCount as usize],
+        pub backing_decimals: [u64; EnumCount as usize], // need only u8, but for alignment reasons we use u64
+        pub padding: [u8; 7], // padding to make the size of the struct 25 * EnumCount + 8
+        pub bump: u8, // Bump seed for PDA
     }
+    impl State {
+        pub const LEN: usize = 32*(EnumCount as usize) + 8;
+    }
+    // #[account(zero_copy)]
+    // pub struct IrmaCommonBumps { bump: u8 };
 
 
     /// ReduceCirculations implementation
@@ -273,7 +252,8 @@ pub mod pricing {
             // does it keep the relative spreads even, or does it skew the spreads?
             let mut count: u8 = 0;
             let mut average_diff: f64 = 0.0;
-            let price_differences : Vec<f64> = self.backing_reserves.iter()
+            let price_differences : Vec<f64> = self.backing_reserves
+                .iter()
                 .enumerate()
                 .filter_map(|(i, reserve)| {
                     let circulation = self.irma_in_circulation[i];
@@ -288,7 +268,8 @@ pub mod pricing {
                     average_diff += x;
                     Some(x)
                 })
-                .collect();
+                .collect::<Vec<f64>>();
+            msg!("Price differences: {:?}", price_differences);
             if count == 0 {
                 msg!("No price differences found, returning early.");
                 return Ok(());
@@ -425,4 +406,4 @@ pub mod pricing {
         #[msg("Invalid IRMA amount.")]
         InvalidIrmaAmount,
     }
-}
+
