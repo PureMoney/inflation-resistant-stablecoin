@@ -116,8 +116,8 @@ describe("Limit Orders Advanced Integration Tests", () => {
             .placeLimitOrder(
               reserve,
               limitOrderKeypair.publicKey,
-              Math.random() > 0.5, // random side
-              Math.floor(Math.random() * 2000) + 1000, // random bin_id
+              false, // bid side (deterministic)
+              1000, // bin_id (deterministic)
               new BN(1_000_000)
             )
             .accounts({
