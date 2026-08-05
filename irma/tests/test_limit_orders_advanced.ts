@@ -530,7 +530,7 @@ describe("Limit Orders Advanced Integration Tests", () => {
         // Try to close already-closed order
         console.log(`   Attempting to close already-closed order...`);
 
-        const closeTx = await program.methods
+        await program.methods
           .closeLimitOrderIfEmpty(nonExistentOrderKeypair.publicKey)
           .accounts({
             state: statePda,
