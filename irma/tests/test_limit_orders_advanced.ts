@@ -273,7 +273,7 @@ describe("Limit Orders Advanced Integration Tests", () => {
         try {
           const limitOrderKeypair = Keypair.generate();
 
-          const tx = await program.methods
+          await program.methods
             .placeLimitOrder(reserve, limitOrderKeypair.publicKey, false, binId, new BN(
               100_000
             ))
