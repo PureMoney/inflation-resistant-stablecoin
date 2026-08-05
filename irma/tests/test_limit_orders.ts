@@ -199,7 +199,7 @@ describe("Limit Orders Tests", () => {
       const limitOrderKeypair = Keypair.generate();
       const limitOrderPubkey = limitOrderKeypair.publicKey;
 
-      console.log(`   Limit Order PDA: ${limitOrderPubkey.toBase58()}`);
+      console.log(`   Limit Order Account: ${limitOrderPubkey.toBase58()}`);
 
       try {
         // Call place_limit_order instruction
