@@ -1,4 +1,4 @@
-﻿# IRMA Limit Orders Test Suite - Delivery Manifest
+# IRMA Limit Orders Test Suite - Delivery Manifest
 
 ## Summary
 Comprehensive test suite for IRMA limit orders feature (place_limit_order, cancel_limit_order, close_limit_order_if_empty)
