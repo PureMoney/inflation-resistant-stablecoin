@@ -511,7 +511,7 @@ describe("Limit Orders Advanced Integration Tests", () => {
           `   Attempting to cancel non-existent order...`
         );
 
-        const cancelTx = await program.methods
+        await program.methods
           .cancelLimitOrder(reserve, nonExistentOrderKeypair.publicKey, [
             1000, 1001,
           ])
