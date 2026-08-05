@@ -470,7 +470,7 @@ describe("Limit Orders Advanced Integration Tests", () => {
         console.log("   ✅ First order placed");
 
         // Second placement with same keypair (would fail on execution)
-        const tx2 = await program.methods
+        await program.methods
           .placeLimitOrder(
             reserve,
             limitOrderKeypair.publicKey,
