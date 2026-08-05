@@ -234,7 +234,7 @@ describe("Limit Orders Tests", () => {
       }
     });
 
-    it("should validate reserve exists before placing order", async function () {
+    it("should construct a transaction even with an unknown reserve (validation occurs on-chain)", async function () {
       this.timeout(30000);
 
       const invalidReserve = "NONEXISTENT_TOKEN";
