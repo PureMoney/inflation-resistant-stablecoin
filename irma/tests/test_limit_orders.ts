@@ -225,12 +225,12 @@ describe("Limit Orders Tests", () => {
         // In a full devnet test, you would send this transaction
         expect(tx).to.be.an("object");
         console.log("✅ place_limit_order transaction constructed successfully");
-      } catch (error) {
-        console.log(
-          "ℹ️ place_limit_order test note: This requires DLMM integration accounts"
+      } catch (error: any) {
+        console.warn(
+          "Skipping: place_limit_order transaction construction requires DLMM remaining accounts / devnet pool setup.",
+          error?.message
         );
-        console.log("   Full testing requires devnet setup with actual pools");
-        console.log(`   Error: ${error.message}`);
+        this.skip();
       }
     });
 
