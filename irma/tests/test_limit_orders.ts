@@ -6,8 +6,6 @@ import {
   PublicKey,
   SystemProgram,
   Keypair,
-  TransactionInstruction,
-  Transaction,
 } from "@solana/web3.js";
 import * as fs from "fs";
 import * as path from "path";
