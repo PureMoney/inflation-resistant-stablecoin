@@ -451,7 +451,7 @@ describe("Limit Orders Advanced Integration Tests", () => {
 
       try {
         // First placement
-        const tx1 = await program.methods
+        await program.methods
           .placeLimitOrder(
             reserve,
             limitOrderKeypair.publicKey,
