@@ -247,7 +247,7 @@ describe("Limit Orders Tests", () => {
       console.log(`   Reserve: ${invalidReserve}`);
 
       try {
-        await program.methods
+        const tx = await program.methods
           .placeLimitOrder(
             invalidReserve,
             limitOrderKeypair.publicKey,
